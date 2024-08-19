@@ -1,0 +1,20 @@
+{
+    "name": "performantlabs/testor",
+    "description": "Robo tasks that work with Automated Testing Kit",
+    "type": "robo-tasks",
+    "autoload": {
+        "psr-4": {
+            "PL\\Robo\\Task\\Testor\\": "src"
+        }
+    },
+    "require": {
+        "php": ">=8.0",
+        "consolidation/robo": "^4.0",
+        "ext-json": "*",
+        "robier/mock-global-php-functions": "^1.0"
+    },
+    "require-dev": {
+        "php-mock/php-mock": "^2.5",
+        "phpunit/phpunit": "^10.5"
+    }
+}
