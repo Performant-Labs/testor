@@ -7,12 +7,14 @@ namespace PL\Robo\Task\Testor {
          * Task to export snapshot from a given Pantheon env,
          * upload it to MinIO, and optionally use for new previews.
          *
-         * @param string $env
+         * @param array $opts
+         * --env Pantheon env
+         * --use-on-preview Use this snapshot for newly created previews.
          * @return SnapshotCreate
          */
-        protected function taskSnapshotCreate($opts = ['env' => 'dev'])
+        protected function taskSnapshotCreate($opts = ['env' => 'dev', 'useOnPreview' => false])
         {
-            return $this->task(SnapshotCreate::class, $opts['env']);
+            return $this->task(SnapshotCreate::class, $opts);
         }
     }
 }
