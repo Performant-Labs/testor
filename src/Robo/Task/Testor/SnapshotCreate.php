@@ -39,7 +39,7 @@ namespace PL\Robo\Task\Testor {
             $bucket = $this->testorConfig->get('s3.bucket');
             $client->putObject(array(
                 'Bucket' => $bucket,
-                'Key' => "${file}",
+                'Key' => "$file",
                 'SourceFile' => $file
             ));
             $this->message = "Uploaded $bucket::$file";
