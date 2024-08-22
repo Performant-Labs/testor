@@ -64,6 +64,7 @@ namespace PL\Robo\Task\Testor {
                 $this->message .= ' and set as default for previews';
             }
 
+            $this->printTaskSuccess($this->message);
             return new Result($this, 0, $this->message);
         }
 
