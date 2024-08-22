@@ -31,7 +31,8 @@ namespace PL\Robo\Task\Testor {
             exec("terminus backup:create $site.$env --element=database");
             exec("terminus backup:list $site.$env --format=json", $output);
             $backups = json_decode(implode("\n", $output));
-            $file = reset($backups)->file;
+            $array = (array)$backups;
+            $file = reset($array)->file;
 
             exec("terminus backup:get $site.$env --file=$file --to=$file");
 
