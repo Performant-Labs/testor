@@ -1,18 +1,15 @@
 <?php
 
-namespace PL\Robo\Task\Testor {
+namespace PL\Tests\Robo\Task\Testor {
 
     use Aws\S3\S3Client;
     use League\Container\ContainerAwareInterface;
     use League\Container\ContainerAwareTrait;
-    use League\Container\Argument\Literal;
-    use Symfony\Component\Console\Output\NullOutput;
-    use Robo\TaskAccessor;
-    use Robo\Robo;
+    use PL\Robo\Task\Testor\SnapshotCreate;
     use Robo\Collection\CollectionBuilder;
-
-    require_once 'tests/MockExec.php';
-    require_once 'tests/MockIsExecutable.php';
+    use Robo\Robo;
+    use Robo\TaskAccessor;
+    use Symfony\Component\Console\Output\NullOutput;
 
     class SnapshotCreateTest extends \PHPUnit\Framework\TestCase implements ContainerAwareInterface
     {

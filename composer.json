@@ -4,7 +4,12 @@
     "type": "robo-tasks",
     "autoload": {
         "psr-4": {
-            "PL\\Robo\\Task\\Testor\\": "src"
+            "PL\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "PL\\Tests\\": "tests"
         }
     },
     "require": {

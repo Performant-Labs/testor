@@ -1,6 +1,6 @@
 <?php
 
-namespace PL\Robo\Task\Testor {
+namespace PL\Tests\Robo\Task\Testor {
 
     use Robier\MockGlobalFunction\MockFunction;
 
@@ -12,7 +12,7 @@ namespace PL\Robo\Task\Testor {
 
         public function __construct()
         {
-            $this->spy = new MockFunction(__NAMESPACE__, 'exec', function (string $command, &$output = null, &$result_code = null) {
+            $this->spy = new MockFunction(str_replace('Tests\\', '', __NAMESPACE__), 'exec', function (string $command, &$output = null, &$result_code = null) {
                 $this->callLog[] = $command;
                 foreach ($this->returnMap as $item => $value) {
                     if (str_starts_with($command, $item)) {

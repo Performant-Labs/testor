@@ -5,8 +5,6 @@ namespace PL\Robo\Task\Testor {
     use Aws\S3\S3Client;
     use Robo\Result;
 
-    require_once 'src/TestorTask.php';
-
     class SnapshotCreate extends TestorTask implements \Robo\Contract\TaskInterface
     {
         protected string $message;
