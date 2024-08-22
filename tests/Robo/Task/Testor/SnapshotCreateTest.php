@@ -64,7 +64,7 @@ namespace PL\Tests\Robo\Task\Testor {
 
             $this->mockIsExecutable->set('terminus', true);
             $this->mock->on('terminus backup:create', 'OK', 0);
-            $this->mock->on('terminus backup:list', '[{"file": "11111.sql.gz"}, {"file": "22222.sql.gz"}]', 0);
+            $this->mock->on('terminus backup:list', '{"2": {"file": "11111.sql.gz"}, "1": {"file": "22222.sql.gz"}}', 0);
             $this->mock->on('terminus backup:get', 'OK', 0);
             $result = $this->mockSnapshotCreate()->run();
             $this->assertEquals(0, $result->getExitCode());
