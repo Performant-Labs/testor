@@ -57,7 +57,7 @@ namespace PL\Tests\Robo\Task\Testor {
                 ->method('putObject')
                 ->with(array(
                     'Bucket' => 'snapshot',
-                    'Key' => '11111.sql.gz',
+                    'Key' => 'test/11111.sql.gz',
                     'SourceFile' => '11111.sql.gz'
                     ))
                 ->willReturn(new \Aws\Result());
@@ -81,7 +81,7 @@ namespace PL\Tests\Robo\Task\Testor {
         public function mockSnapshotCreate(): CollectionBuilder
         {
 //          TODO remove this method, inject dependencies properly via Container
-            $snapshotCreate = $this->taskSnapshotCreate();
+            $snapshotCreate = $this->taskSnapshotCreate(array('env' => 'dev', 'name' => 'test'));
             $snapshotCreate->setS3Client($this->mockS3);
             return $snapshotCreate;
         }
