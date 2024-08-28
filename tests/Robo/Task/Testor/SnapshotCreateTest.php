@@ -5,85 +5,108 @@ namespace PL\Tests\Robo\Task\Testor {
     use Aws\S3\S3Client;
     use League\Container\ContainerAwareInterface;
     use League\Container\ContainerAwareTrait;
+    use Mockery\LegacyMockInterface;
+    use Mockery\MockInterface;
     use PL\Robo\Task\Testor\SnapshotCreate;
     use Robo\Collection\CollectionBuilder;
     use Robo\Robo;
+    use Robo\Task\Base\Exec;
     use Robo\TaskAccessor;
     use Symfony\Component\Console\Output\NullOutput;
 
-    class SnapshotCreateTest extends \PHPUnit\Framework\TestCase implements ContainerAwareInterface
+    class SnapshotCreateTest extends TestorTestCase
     {
-        use \PL\Robo\Task\Testor\Tasks;
-        use TaskAccessor;
-        use ContainerAwareTrait;
 
-        private MockExec $mock;
-        private MockIsExecutable $mockIsExecutable;
-        /**
-         * @var S3Client|(S3Client&object&\PHPUnit\Framework\MockObject\MockObject)|(S3Client&\PHPUnit\Framework\MockObject\MockObject)|(object&\PHPUnit\Framework\MockObject\MockObject)|\PHPUnit\Framework\MockObject\MockObject
-         */
-        private \PHPUnit\Framework\MockObject\MockObject $mockS3;
-
-        function setup(): void
-        {
-            // Set up `exec` mock.
-            $this->mock = new MockExec();
-            $this->mockIsExecutable = new MockIsExecutable();
-
-            // $this->createMock(...) doesn't see method
-            $this->mockS3 = $this->getMockBuilder(S3Client::class)->disableOriginalConstructor()->addMethods(array('putObject'))->getMock();
-
-            // Set up the Robo container so that we can create tasks in our tests.
-            $container = Robo::createDefaultContainer(null, new NullOutput());
-            $this->setContainer($container);
-        }
-
-        public function collectionBuilder(): CollectionBuilder
-        {
-            // Scaffold the collection builder
-            $emptyRobofile = new \Robo\Tasks;
-            return CollectionBuilder::create($this->getContainer(), $emptyRobofile);
-        }
-//
 //        public function testInjected()
 //        {
 //            $this->assertSame($this->mockS3, $this->mockSnapshotCreate()->getS3Client());
 //        }
 
+        /**
+         * @param $command
+         * @dataProvider providerCommand
+         * @return void
+         */
+        public function testExec($command)
+        {
+            // Test that exec() method actually executes command
+            // and returns its return code and output.
+            /** @var SnapshotCreate $snapshotCreate */
+            $snapshotCreate = $this->taskSnapshotCreate(['env' => 'dev', 'name' => '']);
+            $result = $snapshotCreate->exec($command, $output);
+
+            // Reference result through built-in exec.
+            \exec($command, $lines, $code);
+            // We can get text result either as $output, or as $result->getMessage().
+            // $ouptut work in the actual task but doesn't work here.
+            // I have no idea why.
+            $this->assertEquals(implode("\n", $lines), $result->getMessage());
+            $this->assertEquals($code, $result->getExitCode());
+        }
+
+        /**
+         * @dataProvider
+         */
+        public static function providerCommand(): array
+        {
+            return [
+                // this should work both on Linux and Windows
+                ['hostname'],
+                // exit with error and print usage
+                ['hostname --malformed'],
+                // non-existing command
+                ['non-existing-command'],
+            ];
+        }
+
         public function testSnapshotCreate()
         {
-            // Mock assertions turned upside down in phpunit :(
-            $this->mockS3->expects($this->once())
-                ->method('putObject')
+            $mockBuilder = $this->mockCollectionBuilder();
+
+            $snapshotCreate = $this->taskSnapshotCreate(['env' => 'dev', 'name' => 'test']);
+            // Command #1
+            $mockBuilder
+                ->shouldReceive('taskExec')
+                ->once()
+                ->with('terminus backup:create performant-labs.dev --element=database')
+                ->andReturn($this->mockTaskExec(new \Robo\Result($snapshotCreate, 0, 'OK')));
+            // Command #2
+            $mockBuilder
+                ->shouldReceive('taskExec')
+                ->once()
+                ->with('terminus backup:list performant-labs.dev --format=json')
+                ->andReturn($this->mockTaskExec($snapshotCreate, 0, '{"2": {"file": "11111.sql.gz"}, "1": {"file": "22222.sql.gz"}}'));
+            // Command #3
+            $mockBuilder
+                ->shouldReceive('taskExec')
+                ->once()
+                ->with('terminus backup:get performant-labs.dev --file=11111.sql.gz --to=11111.sql.gz')
+                ->andReturn($this->mockTaskExec(new \Robo\Result($snapshotCreate, 0, 'OK')));
+            $snapshotCreate->setBuilder($mockBuilder);
+
+            // Mock S3Client.
+            $mockS3Client = \Mockery::mock(S3Client::class);
+            $mockS3Client
+                ->shouldReceive('putObject')
                 ->with(array(
                     'Bucket' => 'snapshot',
                     'Key' => 'test/11111.sql.gz',
                     'SourceFile' => '11111.sql.gz'
                     ))
-                ->willReturn(new \Aws\Result());
-
-            $this->mockIsExecutable->set('terminus', true);
-            $this->mock->on('terminus backup:create', 'OK', 0);
-            $this->mock->on('terminus backup:list', '{"2": {"file": "11111.sql.gz"}, "1": {"file": "22222.sql.gz"}}', 0);
-            $this->mock->on('terminus backup:get', 'OK', 0);
-            $result = $this->mockSnapshotCreate()->run();
+                ->andReturn(new \Aws\Result());
+            $snapshotCreate->setS3Client($mockS3Client);
+            $result = $snapshotCreate->run();
             $this->assertEquals(0, $result->getExitCode());
-            $this->assertEquals(array(
-                'terminus backup:create performant-labs.dev --element=database',
-                'terminus backup:list performant-labs.dev --format=json',
-                'terminus backup:get performant-labs.dev --file=11111.sql.gz --to=11111.sql.gz'
-            ), $this->mock->getCallList());
         }
 
-        /**
-         * @return SnapshotCreate
-         */
-        public function mockSnapshotCreate(): CollectionBuilder
+        public function testTerminusNotFound()
         {
-//          TODO remove this method, inject dependencies properly via Container
-            $snapshotCreate = $this->taskSnapshotCreate(array('env' => 'dev', 'name' => 'test'));
-            $snapshotCreate->setS3Client($this->mockS3);
-            return $snapshotCreate;
+//            TODO
+        }
+
+        public function testTerminusError()
+        {
+//            TODO
         }
     }
 }

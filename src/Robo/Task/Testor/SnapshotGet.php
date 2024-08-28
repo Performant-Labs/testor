@@ -4,7 +4,7 @@ namespace PL\Robo\Task\Testor {
 
     use Robo\Common\BuilderAwareTrait;
 
-    class SnapshotGet extends TestorTask implements \Robo\Contract\TaskInterface, \Robo\Contract\BuilderAwareInterface
+    class SnapshotGet extends TestorTask
     {
         use BuilderAwareTrait;
 

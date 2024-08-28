@@ -2,7 +2,7 @@
 
 namespace PL\Robo\Task\Testor {
 
-    class SnapshotList extends TestorTask implements \Robo\Contract\TaskInterface
+    class SnapshotList extends TestorTask
     {
         protected string $name;
 

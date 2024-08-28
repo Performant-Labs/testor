@@ -5,7 +5,7 @@ namespace PL\Robo\Task\Testor {
     use Aws\S3\S3Client;
     use Robo\Result;
 
-    class SnapshotCreate extends TestorTask implements \Robo\Contract\TaskInterface
+    class SnapshotCreate extends TestorTask
     {
         protected string $env;
         protected string $name;
@@ -26,13 +26,22 @@ namespace PL\Robo\Task\Testor {
             $site = $this->testorConfig->get('pantheon.site');
             $env = $this->env;
 
-            exec("terminus backup:create $site.$env --element=database");
-            exec("terminus backup:list $site.$env --format=json", $output);
-            $backups = json_decode(implode("\n", $output));
+            $result = $this->exec("terminus backup:create $site.$env --element=database");
+            if ($result->getExitCode() != 0) {
+                return $result;
+            }
+            $result = $this->exec("terminus backup:list $site.$env --format=json", $output);
+            if ($result->getExitCode() != 0) {
+                return $result;
+            }
+            $backups = json_decode($result->getMessage());
             $array = (array)$backups;
             $file = reset($array)->file;
 
-            exec("terminus backup:get $site.$env --file=$file --to=$file");
+            $result = $this->exec("terminus backup:get $site.$env --file=$file --to=$file");
+            if ($result->getExitCode() != 0) {
+                return $result;
+            }
 
             $client = $this->getS3Client();
             $bucket = $this->testorConfig->get('s3.bucket');

@@ -13,14 +13,13 @@
         }
     },
     "require": {
-        "php": ">=8.0",
+        "php": ">=8.1",
         "consolidation/robo": "^4.0",
         "ext-json": "*",
-        "robier/mock-global-php-functions": "^1.0",
         "aws/aws-sdk-php": "^3.320"
     },
     "require-dev": {
-        "php-mock/php-mock": "^2.5",
-        "phpunit/phpunit": "^10.5"
+        "phpunit/phpunit": "^10.5",
+        "mockery/mockery": "^1.6"
     }
 }

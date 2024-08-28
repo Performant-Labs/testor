@@ -4,10 +4,16 @@ namespace PL\Robo\Task\Testor {
 
     use Aws\S3\S3Client;
     use Consolidation\Config\ConfigInterface;
+    use Robo\Common\BuilderAwareTrait;
+    use Robo\Result;
     use Robo\Robo;
+    use Robo\Task\Base\Exec;
 
-    abstract class TestorTask extends \Robo\Task\BaseTask
+    abstract class TestorTask extends \Robo\Task\BaseTask implements \Robo\Contract\BuilderAwareInterface, \Robo\Contract\TaskInterface
     {
+
+        use BuilderAwareTrait;
+
         protected ConfigInterface $testorConfig;
         protected ?S3Client $s3Client;
         protected string $message;
@@ -37,6 +43,38 @@ namespace PL\Robo\Task\Testor {
         public function isExecutable(string $filename): bool
         {
             return !empty(shell_exec("which $filename"));
+        }
+
+        /** Execute command line.
+         *
+         * If you want to stop a task at the first unsuccessful command,
+         * it should be used like following:
+         * ```
+         * $result = $this->exec("my/command/line blah-blah-blah");
+         * if ($result->getExitCode() != 0) {
+         *     return $result;
+         * }
+         * // do following steps
+         * ```
+         * @param string $command command line
+         * @param string|null $output reference to command's stdout, if needed
+         * @return Result command's result
+         */
+        public function exec(string $command, string &$output = null): Result
+        {
+            /** @var Exec $taskExec */
+            $taskExec = $this->collectionBuilder()->taskExec($command);
+
+            // Robo seem to either capture output or print it.
+            // But never both.
+            // So as a tradeoff let capture it if $output reference is passed
+            // and print otherwise.
+            $printOutput = count(func_get_args()) == 1;
+            $result = $taskExec->printOutput($printOutput)->run();
+            // Save to the variable.
+            $outputData = $result->getOutputData();
+            $output = $outputData;
+            return $result;
         }
 
         protected function initTugboat(): bool
