@@ -16,6 +16,23 @@ class TestorCommands extends \Robo\Tasks
     use Tasks;
 
     /**
+     * Initialize Testor.
+     *
+     * Use this command to
+     *  - create example configuration;
+     *  - create ddev custom command, if you use ddev environment.
+     *
+     * @return Result
+     */
+    public function testorInit()
+    {
+        return $this->collectionBuilder()
+            ->taskTestorConfigInit()
+            ->taskTestorCustomCommand()
+            ->run();
+    }
+
+    /**
      * Task to export snapshot from a given Pantheon env,
      * upload it to the S3-compatible storage.
      *

@@ -20,7 +20,7 @@ namespace PL\Robo\Task\Testor {
 
         function __construct()
         {
-            $this->testorConfig = Robo::createConfiguration(['.testor.yml']);
+            $this->testorConfig = Robo::createConfiguration(['.testor.yml', '.testor_secret.yml']);
         }
 
         public function setS3Client(?S3Client $s3Client): void
