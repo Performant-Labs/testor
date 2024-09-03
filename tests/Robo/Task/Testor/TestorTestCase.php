@@ -2,6 +2,7 @@
 
 namespace PL\Tests\Robo\Task\Testor;
 
+use Aws\S3\S3Client;
 use League\Container\ContainerAwareInterface;
 use League\Container\ContainerAwareTrait;
 use League\Container\DefinitionContainerInterface;
@@ -21,10 +22,18 @@ class TestorTestCase extends MockeryTestCase implements ContainerAwareInterface
     use TaskAccessor;
     use ContainerAwareTrait;
 
+    protected LegacyMockInterface|S3Client|MockInterface $mockS3Client;
+
     function setUp(): void
     {
         // Set up the Robo container so that we can create tasks in our tests.
         $container = Robo::createDefaultContainer(null, new NullOutput());
+
+        // Set up test dependencies.
+        $container->add('testorConfig', new \Consolidation\Config\Config(['pantheon' => ['site' => 'performant-labs'], 's3' => ['config' => '**DUMMY**', 'bucket' => 'snapshot']]));
+        $container->add('s3Client', $this->mockS3Client = $this->mockS3Client());
+        $container->add('s3Bucket', 'snapshot');
+
         $this->setContainer($container);
     }
 
@@ -60,7 +69,7 @@ class TestorTestCase extends MockeryTestCase implements ContainerAwareInterface
      * Mock collection builder with the ultimate goal to mock taskExec
      * (or other tasks that are used in the task under test).
      *
-     * @return (MockInterface&object&LegacyMockInterface)|CollectionBuilder|(CollectionBuilder&MockInterface&object&LegacyMockInterface)
+     * #re
      */
     public function mockCollectionBuilder(): CollectionBuilder|MockInterface|LegacyMockInterface
     {
@@ -77,5 +86,11 @@ class TestorTestCase extends MockeryTestCase implements ContainerAwareInterface
         $mockBuilder->shouldReceive('newBuilder')->andReturn($mockBuilder);
         $mockBuilder->shouldReceive('inflect')->andReturn($mockBuilder);
         return $mockBuilder;
+    }
+
+    public function mockS3Client(): S3Client|MockInterface|LegacyMockInterface
+    {
+        $this->mockS3Client ??= \Mockery::mock(S3Client::class);
+        return $this->mockS3Client;
     }
 }

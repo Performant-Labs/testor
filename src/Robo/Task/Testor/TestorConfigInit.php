@@ -2,7 +2,7 @@
 
 namespace PL\Robo\Task\Testor;
 
-class TestorConfigInit extends TestorTask
+class TestorConfigInit extends \Robo\Task\BaseTask
 {
     private string $CONFIG = "# Add this config to the version control.
 pantheon:

@@ -2,11 +2,12 @@
 
 namespace PL\Robo\Task\Testor {
 
-    use Aws\S3\S3Client;
     use Consolidation\Config\ConfigInterface;
+    use PL\Robo\Contract\S3BucketAwareInterface;
+    use PL\Robo\Contract\S3ClientAwareInterface;
+    use PL\Robo\Contract\TestorConfigAwareInterface;
     use Robo\Common\BuilderAwareTrait;
     use Robo\Result;
-    use Robo\Robo;
     use Robo\Task\Base\Exec;
 
     abstract class TestorTask extends \Robo\Task\BaseTask implements \Robo\Contract\BuilderAwareInterface, \Robo\Contract\TaskInterface
@@ -14,26 +15,26 @@ namespace PL\Robo\Task\Testor {
 
         use BuilderAwareTrait;
 
-        protected ConfigInterface $testorConfig;
-        protected ?S3Client $s3Client;
         protected string $message;
 
         function __construct()
         {
-            $this->testorConfig = Robo::createConfiguration(['.testor.yml', '.testor_secret.yml']);
-        }
-
-        public function setS3Client(?S3Client $s3Client): void
-        {
-            $this->s3Client = $s3Client;
-        }
-
-        /**
-         * @return S3Client
-         */
-        public function getS3Client(): S3Client
-        {
-            return $this->s3Client ?? new S3Client($this->testorConfig->get('s3.config'));
+            // We have BaseTask->injectDependencies() which passes dependencies
+            // created by Robo like a waterfall from parent to child.
+            // Since it's not clear how to add dependencies specific to the
+            // custom task, like in our case (S3, Tugboat, Pantheon etc.),
+            // and also `inflector()` makes no affect, let inject them here
+            // in the constructor
+            $container = \Robo\Robo::getContainer();
+            if ($this instanceof TestorConfigAwareInterface) {
+                $this->setTestorConfig($container->get('testorConfig'));
+            }
+            if ($this instanceof S3ClientAwareInterface) {
+                $this->setS3Client($container->get('s3Client'));
+            }
+            if ($this instanceof S3BucketAwareInterface) {
+                $this->setS3Bucket($container->get('s3Bucket'));
+            }
         }
 
         /**

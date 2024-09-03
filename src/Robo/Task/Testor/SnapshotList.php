@@ -2,8 +2,17 @@
 
 namespace PL\Robo\Task\Testor {
 
+    use PL\Robo\Common\S3BucketAwareTrait;
+    use PL\Robo\Common\S3ClientAwareTrait;
+    use PL\Robo\Contract\S3BucketAwareInterface;
+    use PL\Robo\Contract\S3ClientAwareInterface;
+
     class SnapshotList extends TestorTask
+        implements S3ClientAwareInterface, S3BucketAwareInterface
     {
+        use S3ClientAwareTrait;
+        use S3BucketAwareTrait;
+
         protected string $name;
 
         function __construct(array $args)
@@ -14,10 +23,8 @@ namespace PL\Robo\Task\Testor {
 
         public function run(): \Robo\Result
         {
-            $client = $this->getS3Client();
-            $bucket = $this->testorConfig->get('s3.bucket');
-            $result = $client->listObjects(array(
-                'Bucket' => $bucket,
+            $result = $this->s3Client->listObjects(array(
+                'Bucket' => $this->s3Bucket,
                 'Delimiter' => ':',
                 'Prefix' => $this->name
             ));

@@ -3,19 +3,29 @@
 namespace PL\Robo\Task\Testor {
 
     use Aws\S3\S3Client;
+    use PL\Robo\Common\S3BucketAwareTrait;
+    use PL\Robo\Common\S3ClientAwareTrait;
+    use PL\Robo\Common\TestorConfigAwareTrait;
+    use PL\Robo\Contract\S3BucketAwareInterface;
+    use PL\Robo\Contract\S3ClientAwareInterface;
+    use PL\Robo\Contract\TestorConfigAwareInterface;
     use Robo\Result;
 
     class SnapshotCreate extends TestorTask
+        implements TestorConfigAwareInterface, S3ClientAwareInterface, S3BucketAwareInterface
     {
+        use TestorConfigAwareTrait;
+        use S3ClientAwareTrait;
+        use S3BucketAwareTrait;
+
         protected string $env;
         protected string $name;
 
-        function __construct(array $opts, S3Client $client = null)
+        function __construct(array $opts)
         {
             parent::__construct();
             $this->env = $opts['env'];
             $this->name = $opts['name'];
-            $this->s3Client = $client;
         }
 
         // define public methods as commands
@@ -43,15 +53,13 @@ namespace PL\Robo\Task\Testor {
                 return $result;
             }
 
-            $client = $this->getS3Client();
-            $bucket = $this->testorConfig->get('s3.bucket');
-            $name = $this->name;
-            $client->putObject(array(
-                'Bucket' => $bucket,
-                'Key' => "$name/$file",
+            $name = "$this->name/$file";
+            $this->s3Client->putObject(array(
+                'Bucket' => $this->s3Bucket,
+                'Key' => $name,
                 'SourceFile' => $file
             ));
-            $this->message = "Uploaded $bucket::$name/$file";
+            $this->message = "Uploaded $this->s3Bucket::$name";
 
             $this->printTaskSuccess($this->message);
             return new Result($this, 0, $this->message);

@@ -2,29 +2,27 @@
 
 namespace PL\Robo\Task\Testor;
 
-class TestorCustomCommand extends TestorTask
+class TestorCustomCommand extends \Robo\Task\BaseTask
 {
     private string $SCRIPT = "#!/bin/bash
 
-## Description: Execute Robo (and therefore Testor)
-## Usage: robo
-## Example: ddev robo list
+## Description: Execute Testor
+## Usage: testor
+## Example: ddev testor list
 
-robo
+testor
 ";
 
     public function run(): \Robo\Result
     {
-        // This will create a custom ddev command.
-        // TODO change robo to testor after converting Testor to an application.
-
         // If we aren't under ddev, silently skip it.
         if (!$this->isDdev()) {
             return new \Robo\Result($this, 0);
         }
 
+        // This will create a custom ddev command.
         file_put_contents('.ddev/commands/web/testor.sh', $this->SCRIPT);
-        $this->printTaskInfo('DDEV custom command created. Use `ddev robo`.');
+        $this->printTaskInfo('DDEV custom command created. Use `ddev testor`.');
         return new \Robo\Result($this, 0);
     }
 

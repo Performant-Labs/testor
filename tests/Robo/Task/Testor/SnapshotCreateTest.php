@@ -2,17 +2,7 @@
 
 namespace PL\Tests\Robo\Task\Testor {
 
-    use Aws\S3\S3Client;
-    use League\Container\ContainerAwareInterface;
-    use League\Container\ContainerAwareTrait;
-    use Mockery\LegacyMockInterface;
-    use Mockery\MockInterface;
     use PL\Robo\Task\Testor\SnapshotCreate;
-    use Robo\Collection\CollectionBuilder;
-    use Robo\Robo;
-    use Robo\Task\Base\Exec;
-    use Robo\TaskAccessor;
-    use Symfony\Component\Console\Output\NullOutput;
 
     class SnapshotCreateTest extends TestorTestCase
     {
@@ -85,7 +75,7 @@ namespace PL\Tests\Robo\Task\Testor {
             $snapshotCreate->setBuilder($mockBuilder);
 
             // Mock S3Client.
-            $mockS3Client = \Mockery::mock(S3Client::class);
+            $mockS3Client = $this->mockS3Client();
             $mockS3Client
                 ->shouldReceive('putObject')
                 ->with(array(

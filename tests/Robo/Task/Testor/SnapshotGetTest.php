@@ -2,17 +2,17 @@
 
 namespace PL\Tests\Robo\Task\Testor;
 
-use Aws\S3\S3Client;
-use PL\Tests\Robo\Task\Testor\TestorTestCase;
+use PL\Robo\Task\Testor\SnapshotGet;
 
 class SnapshotGetTest extends TestorTestCase
 {
     public function testSnapshotGet()
     {
+        /** @var SnapshotGet $snapshotGet */
         $snapshotGet = $this->taskSnapshotGet(['name' => 'test', 'output' => 'test.sql.gz']);
 
         // Mock S3Client.
-        $mockS3Client = \Mockery::mock(S3Client::class);
+        $mockS3Client = $this->mockS3Client();
         $mockS3Client->shouldReceive('listObjects')
             ->once()
             ->with(array(

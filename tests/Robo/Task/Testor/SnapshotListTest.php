@@ -2,17 +2,17 @@
 
 namespace PL\Tests\Robo\Task\Testor;
 
-use Aws\S3\S3Client;
-use PL\Tests\Robo\Task\Testor\TestorTestCase;
+use PL\Robo\Task\Testor\SnapshotList;
 
 class SnapshotListTest extends TestorTestCase
 {
     public function testSnapshotList()
     {
+        /** @var SnapshotList $snapshotList */
         $snapshotList = $this->taskSnapshotList(['name' => 'test']);
 
         // Mock S3Client.
-        $mockS3Client = \Mockery::mock(S3Client::class);
+        $mockS3Client = $this->mockS3Client();
         $mockS3Client->shouldReceive('listObjects')
             ->once()
             ->with(array(
@@ -56,7 +56,7 @@ class SnapshotListTest extends TestorTestCase
         $snapshotList = $this->taskSnapshotList(['name' => 'test']);
 
         // Mock S3Client.
-        $mockS3Client = \Mockery::mock(S3Client::class);
+        $mockS3Client = $this->mockS3Client();
         $mockS3Client->shouldReceive('listObjects')
             ->once()
             ->with(array(
