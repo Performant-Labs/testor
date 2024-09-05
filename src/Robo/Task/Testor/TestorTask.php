@@ -6,6 +6,7 @@ namespace PL\Robo\Task\Testor {
     use PL\Robo\Contract\S3BucketAwareInterface;
     use PL\Robo\Contract\S3ClientAwareInterface;
     use PL\Robo\Contract\TestorConfigAwareInterface;
+    use PL\Robo\Testor;
     use Robo\Common\BuilderAwareTrait;
     use Robo\Result;
     use Robo\Task\Base\Exec;
@@ -26,6 +27,7 @@ namespace PL\Robo\Task\Testor {
             // and also `inflector()` makes no affect, let inject them here
             // in the constructor
             $container = \Robo\Robo::getContainer();
+            Testor::configureContainer($container);
             if ($this instanceof TestorConfigAwareInterface) {
                 $this->setTestorConfig($container->get('testorConfig'));
             }

@@ -18,11 +18,16 @@ class TestorApplication
 
     public function __construct($classLoader)
     {
-        // Create and configure container.
-        $container = Testor::createContainer();
+// Theoretically, that is how we should set a custom container.
+// But in practice, Robo skips a whole bunch of usefulnesses if
+// container is set from the user code and not created while run()
+// so let skip it and set out dependencies later on. E.g. within
+// Task constructor, because this one Robo won't be able to bypass...
+//        // Create and configure container.
+//        $container = Testor::createContainer();
 
         // Initialize Robo Runner.
-        $this->consoleOutput = $container->get('output');
+//        $this->consoleOutput = $container->get('output');
         $configFilePath = getenv('ROBO_CONFIG') ?: getenv('HOME') . '/.robo/robo.yml';
         $runner = new \Robo\Runner(\PL\Robo\Plugin\Commands\TestorCommands::class);
         $runner
@@ -33,7 +38,7 @@ class TestorApplication
             ->setClassLoader($classLoader);
 
         // Befriend container with runner.
-        $runner->setContainer($container);
+//        $runner->setContainer($container);
 
         $this->runner = $runner;
     }
@@ -41,7 +46,7 @@ class TestorApplication
     public function run($argv): int
     {
         $version = \Composer\InstalledVersions::getVersion('performantlabs/testor');
-        $statusCode = $this->runner->execute($argv, self::APPLICATION_NAME, $version, $this->consoleOutput);
+        $statusCode = $this->runner->execute($argv, self::APPLICATION_NAME, $version);
         return $statusCode;
     }
 }

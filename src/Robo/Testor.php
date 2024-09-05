@@ -10,12 +10,31 @@ use Robo\Robo;
  */
 class Testor
 {
+    public static bool $isConfigured = false;
+
     /**
      * @return ContainerInterface|\League\Container\Container
      */
     static function createContainer(): ContainerInterface|\League\Container\Container
     {
         $container = Robo::createDefaultContainer();
+        self::configureContainer($container);
+
+        // Robo requires this for some reason.
+        Robo::finalizeContainer($container);
+
+        return $container;
+    }
+
+    /**
+     * @param ContainerInterface|\League\Container\Container|null $container
+     * @return void
+     */
+    public static function configureContainer(ContainerInterface|\League\Container\Container|null $container): void
+    {
+        if (self::$isConfigured) {
+            return;
+        }
 
         // TestorConfig (which is different from Config. Config has task and
         // its default arguments configuration, while TestorConig contains
@@ -37,9 +56,6 @@ class Testor
         $container->inflector(\PL\Robo\Contract\S3BucketAwareInterface::class)
             ->invokeMethod('setS3Bucket', ['s3Bucket']);
 
-        // Robo requires this for some reason.
-        Robo::finalizeContainer($container);
-
-        return $container;
+        self::$isConfigured = true;
     }
 }
