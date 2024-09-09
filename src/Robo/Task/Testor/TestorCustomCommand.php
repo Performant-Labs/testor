@@ -10,7 +10,7 @@ class TestorCustomCommand extends \Robo\Task\BaseTask
 ## Usage: testor
 ## Example: ddev testor list
 
-testor
+testor $@
 ";
 
     public function run(): \Robo\Result
