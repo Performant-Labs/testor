@@ -16,7 +16,7 @@ namespace PL\Robo\Task\Testor {
         use S3BucketAwareTrait;
 
         protected string $name;
-        protected string $filename;
+        protected ?string $filename;
 
         function __construct(array $args)
         {
@@ -37,7 +37,8 @@ namespace PL\Robo\Task\Testor {
             // contains a datetime-sorted array of objects.
             // Key is the name of the first object.
             $key = $result['table'][0]['Name'];
-            $this->filename = $this->filename ?? $key;
+            $array = explode('/', $key);
+            $this->filename = $this->filename ?? end($array);
             $this->s3Client->getObject(array(
                 'Bucket' => $this->s3Bucket,
                 'Key' => $key,
