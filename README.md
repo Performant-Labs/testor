@@ -7,13 +7,13 @@ The command-line tool that works hand-in-glove with [Automated Testing Kit](http
 On bare metal:
 ```shell
 composer require performantlabs/testor
-vendor/bin/testor init
+vendor/bin/testor self:init
 ```
 
 Under DDEV:
 ```shell
 ddev composer install performantlabs/testor
-ddev exec testor init
+ddev exec testor self:init
 ```
 
 After that put your project settings

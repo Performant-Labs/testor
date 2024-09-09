@@ -24,7 +24,7 @@ class TestorCommands extends \Robo\Tasks
      *
      * @return Result
      */
-    public function init(): Result
+    public function selfInit(): Result
     {
         return $this->collectionBuilder()
             ->taskTestorConfigInit()
