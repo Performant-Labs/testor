@@ -42,9 +42,10 @@ class TestorCommands extends \Robo\Tasks
      * @option $name Name of the snapshot, such as "developer" or "preview",
      * will be prefixed to the real unique snapshot name (it can be thought
      * as a folder)
+     * @option $element Element to backup (code, database, files)
      *
      */
-    public function snapshotCreate(array $opts = ['env' => 'dev', 'name' => '']): Result
+    public function snapshotCreate(array $opts = ['env' => 'dev', 'name' => '', 'element' => 'database'] ): Result
     {
         return$this->taskSnapshotCreate($opts)->run();
     }
@@ -54,9 +55,10 @@ class TestorCommands extends \Robo\Tasks
      * @param array $opts
      * @option $name Name of the snapshot, such as "developer" or "preview",
      * which is a prefix for an exact snapshot name (it can be thought as a folder)
+     * @option $element Element to list backups for (code, database, files)
      * @return RowsOfFields
      */
-    public function snapshotList(array $opts = ['name' => '']): RowsOfFields
+    public function snapshotList(array $opts = ['name' => '', 'element' => 'database']): RowsOfFields
     {
         $result = $this->taskSnapshotList($opts)->run();
         return new RowsOfFields($result['table']);
@@ -70,9 +72,10 @@ class TestorCommands extends \Robo\Tasks
      * like "developer" or "preview". In the latter case, the last snapshot with
      * this prefix will be gotten.
      * @option $output Output file. If not specified, original file name will be kept.
+     * @option $element Element to get backups for (code, database, files)
      * @return Result
      */
-    public function snapshotGet(array $opts = ['name' => '', 'output|o' => null]): Result
+    public function snapshotGet(array $opts = ['name' => '', 'output|o' => null, 'element' => 'database']): Result
     {
         return$this->taskSnapshotGet($opts)->run();
     }

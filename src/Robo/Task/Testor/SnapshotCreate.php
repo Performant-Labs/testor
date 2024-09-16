@@ -20,12 +20,14 @@ namespace PL\Robo\Task\Testor {
 
         protected string $env;
         protected string $name;
+        protected string $element;
 
         function __construct(array $opts)
         {
             parent::__construct();
             $this->env = $opts['env'];
             $this->name = $opts['name'];
+            $this->element = $opts['element'];
         }
 
         // define public methods as commands
@@ -36,7 +38,7 @@ namespace PL\Robo\Task\Testor {
             $site = $this->testorConfig->get('pantheon.site');
             $env = $this->env;
 
-            $result = $this->exec("terminus backup:create $site.$env --element=database");
+            $result = $this->exec("terminus backup:create $site.$env --element=$this->element");
             if ($result->getExitCode() != 0) {
                 return $result;
             }

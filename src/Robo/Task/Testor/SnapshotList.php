@@ -14,11 +14,13 @@ namespace PL\Robo\Task\Testor {
         use S3BucketAwareTrait;
 
         protected string $name;
+        protected string $element;
 
         function __construct(array $args)
         {
             parent::__construct();
             $this->name = $args['name'];
+            $this->element = $args['element'];
         }
 
         public function run(): \Robo\Result
@@ -42,6 +44,10 @@ namespace PL\Robo\Task\Testor {
                 );
                 usort($table, fn($a, $b) => $b['Date']->getTimestamp() - $a['Date']->getTimestamp());
             }
+
+            // Filter out elements
+            $table = array_values(array_filter($table, fn($value) => str_contains($value['Name'], $this->element)));
+
             return new \Robo\Result($this, 0, '', array('table' => $table));
         }
     }

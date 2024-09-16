@@ -17,18 +17,20 @@ namespace PL\Robo\Task\Testor {
 
         protected string $name;
         protected ?string $filename;
+        protected string $element;
 
         function __construct(array $args)
         {
             parent::__construct();
             $this->name = $args['name'];
             $this->filename = $args['output'];
+            $this->element = $args['element'];
         }
 
         public function run()
         {
             /** @var SnapshotList $taskSnapshotList */
-            $taskSnapshotList = $this->collectionBuilder()->taskSnapshotList(array('name' => $this->name));
+            $taskSnapshotList = $this->collectionBuilder()->taskSnapshotList(array('name' => $this->name, 'element' => $this->element));
             $result = $taskSnapshotList->run();
             if (empty($result['table'])) {
                 return new \Robo\Result($this, 1);
