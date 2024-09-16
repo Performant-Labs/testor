@@ -51,6 +51,12 @@ namespace PL\Tests\Robo\Task\Testor {
 
         public function testSnapshotCreate()
         {
+            // Mock shell_exec (for `isExecutable`)
+            $mockShellExec = $this->mockBuiltIn('shell_exec');
+            $mockShellExec->expects(self::once())
+                ->with('which terminus')
+                ->willReturn('/usr/bin/terminus');
+
             $mockBuilder = $this->mockCollectionBuilder();
 
             $snapshotCreate = $this->taskSnapshotCreate(['env' => 'dev', 'name' => 'test', 'element' => 'database']);
@@ -131,12 +137,39 @@ namespace PL\Tests\Robo\Task\Testor {
 
         public function testTerminusNotFound()
         {
-//            TODO
+            $mockShellExec = $this->mockBuiltIn('shell_exec');
+            $mockShellExec->expects(self::once())
+                ->with('which terminus')
+                ->willReturn('');
+
+            $snapshotCreate = $this->taskSnapshotCreate(['env' => 'dev', 'name' => '', 'element' => 'database']);
+            $result = $snapshotCreate->run();
+            $this->assertEquals(1, $result->getExitCode());
+            $this->assertStringContainsString('Please install and configure terminus', $result->getMessage());
         }
 
         public function testTerminusError()
         {
-//            TODO
+            // Mock shell_exec (for `isExecutable`)
+            $mockShellExec = $this->mockBuiltIn('shell_exec');
+            $mockShellExec->expects(self::once())
+                ->with('which terminus')
+                ->willReturn('/usr/bin/terminus');
+
+            $mockBuilder = $this->mockCollectionBuilder();
+
+            $snapshotCreate = $this->taskSnapshotCreate(['env' => 'dev', 'name' => 'test', 'element' => 'database']);
+            // Command #1
+            $mockBuilder
+                ->shouldReceive('taskExec')
+                ->once()
+                ->with('terminus backup:create performant-labs.dev --element=database')
+                ->andReturn($this->mockTaskExec(new \Robo\Result($snapshotCreate, 1, 'SPOOKY SCARY ERROR')));
+            $snapshotCreate->setBuilder($mockBuilder);
+
+            $result = $snapshotCreate->run();
+            $this->assertEquals(1, $result->getExitCode());
+            $this->assertStringContainsString('SPOOKY SCARY ERROR', $result->getMessage());
         }
     }
 }

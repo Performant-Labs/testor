@@ -17,6 +17,7 @@ use Symfony\Component\Console\Output\NullOutput;
 
 class TestorTestCase extends MockeryTestCase implements ContainerAwareInterface
 {
+    use \phpmock\phpunit\PHPMock;
     use \Robo\Task\Base\Tasks;
     use \PL\Robo\Task\Testor\Tasks;
     use TaskAccessor;
@@ -30,7 +31,7 @@ class TestorTestCase extends MockeryTestCase implements ContainerAwareInterface
         $container = Robo::createDefaultContainer(null, new NullOutput());
 
         // Set up test dependencies.
-        $container->add('testorConfig', new \Consolidation\Config\Config(['pantheon' => ['site' => 'performant-labs'], 's3' => ['config' => '**DUMMY**', 'bucket' => 'snapshot']]));
+        $container->add('testorConfig', new \Consolidation\Config\Config(['pantheon' => ['site' => 'performant-labs'], 's3' => ['config' => '**DUMMY**', 'bucket' => 'snapshot'], 'tugboat' => ['repo' => '1reporepo1']]));
         $container->add('s3Client', $this->mockS3Client = $this->mockS3Client());
         $container->add('s3Bucket', 'snapshot');
 
@@ -58,6 +59,7 @@ class TestorTestCase extends MockeryTestCase implements ContainerAwareInterface
             $result = $result_args[0];
         } else {
             $result = new \Robo\Result(...$result_args);
+            $result->provideOutputdata();
         }
         // We can call printOutput but don't care about its argument so far.
         $mockExec->shouldReceive('printOutput')->andReturn($mockExec);
@@ -69,7 +71,7 @@ class TestorTestCase extends MockeryTestCase implements ContainerAwareInterface
      * Mock collection builder with the ultimate goal to mock taskExec
      * (or other tasks that are used in the task under test).
      *
-     * #re
+     * @return CollectionBuilder|MockInterface|LegacyMockInterface
      */
     public function mockCollectionBuilder(): CollectionBuilder|MockInterface|LegacyMockInterface
     {
@@ -92,5 +94,18 @@ class TestorTestCase extends MockeryTestCase implements ContainerAwareInterface
     {
         $this->mockS3Client ??= \Mockery::mock(S3Client::class);
         return $this->mockS3Client;
+    }
+
+    public function mockBuiltIn($function)
+    {
+        // "Native" php-mock-phpunit MockObject
+        $mock = $this->getFunctionMock('\\PL\\Robo\\Task\\Testor\\', $function);
+
+        // Our wrapper
+        $mock = new Helper\MockBuiltIn($mock, $function);
+
+        // Steal 'registerForTeardown' method to register our mock's assertion as well
+        $this->registerForTearDown($mock);
+        return $mock;
     }
 }
