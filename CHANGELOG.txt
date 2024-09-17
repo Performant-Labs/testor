@@ -1,0 +1,9 @@
+Testor 1.1.0, 2024-09-17
+------------------------
+Changes since 1.0.0:
+- Added the --element switch and the ability to work with files.
+
+
+Testor 1.0.0, 2024-09-08
+------------------------
+Initial release that works with database snapshots.
