@@ -173,4 +173,40 @@ class SnapshotGetTest extends TestorTestCase
         $result = $snapshotGet->run();
         $this->assertEquals(0, $result->getExitCode());
     }
+
+    public function testSnapshotGetNoResult() {
+        /** @var SnapshotGet $snapshotGet */
+        $snapshotGet = $this->taskSnapshotGet(['name' => 'test', 'output' => 'test.sql.gz', 'element' => 'database']);
+
+        // Mock S3Client.
+        $mockS3Client = $this->mockS3Client();
+        $mockS3Client->shouldReceive('listObjects')
+            ->once()
+            ->with(array(
+                'Bucket' => 'snapshot',
+                'Delimiter' => ':',
+                'Prefix' => 'test'
+            ))
+            ->andReturn(array(
+                'Contents' => null
+            ));
+        $snapshotGet->setS3Client($mockS3Client);
+
+        // Now things are going tricky, since SnapshotGet uses
+        // SnapshotList and it's not available because Testor
+        // is not installed in the test environment.
+        // So, we must mock builder once again (like in SnapshotCreateTest),
+        // and make it return SnapshotList available here.
+        $snapshotList = $this->taskSnapshotList(['name' => 'test', 'element' => 'database']);
+        $snapshotList->setS3Client($mockS3Client);
+        $mockBuilder = $this->mockCollectionBuilder();
+        $mockBuilder->shouldReceive('taskSnapshotList')
+            ->once()
+            ->with(['name' => 'test', 'element' => 'database'])
+            ->andReturn($snapshotList);
+        $snapshotGet->setBuilder($mockBuilder);
+
+        $result = $snapshotGet->run();
+        $this->assertEquals(1, $result->getExitCode());
+    }
 }

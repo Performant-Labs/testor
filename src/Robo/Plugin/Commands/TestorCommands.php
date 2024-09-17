@@ -4,6 +4,7 @@ namespace PL\Robo\Plugin\Commands;
 
 use Consolidation\AnnotatedCommand\CommandResult;
 use Consolidation\OutputFormatters\StructuredData\RowsOfFields;
+use Consolidation\OutputFormatters\StructuredData\UnstructuredListData;
 use League\Container\ContainerAwareTrait;
 use PL\Robo\Task\Testor\SnapshotCreate;
 use PL\Robo\Task\Testor\Tasks;
@@ -78,5 +79,37 @@ class TestorCommands extends \Robo\Tasks
     public function snapshotGet(array $opts = ['name' => '', 'output|o' => null, 'element' => 'database']): Result
     {
         return$this->taskSnapshotGet($opts)->run();
+    }
+
+    /**
+     * Delete all previews on Tugboat within project's repo.
+     *
+     * @return Result
+     */
+    public function previewDeleteAll(): Result
+    {
+        return $this->taskTugboatPreviewDeleteAll()->run();
+    }
+
+    /**
+     * Create a new preview on Tugboat.
+     *
+     * @return UnstructuredListData Preview in Tugboat's format
+     */
+    public function previewCreate(): UnstructuredListData
+    {
+        $result = $this->taskTugboatPreviewCreate()->run();
+        return $result['preview'] ? new UnstructuredListData($result['preview']) : $result;
+    }
+
+    /**
+     * Change ATK configs to run tests against given preview.
+     *
+     * @param string $preview
+     * @return Result
+     */
+    public function previewSet(string $preview): Result
+    {
+        return $this->taskTugboatPreviewSet($preview)->run();
     }
 }

@@ -27,5 +27,20 @@ namespace PL\Robo\Task\Testor {
         {
             return $this->task(SnapshotGet::class, $opts);
         }
+
+        protected function taskTugboatPreviewDeleteAll(): \Robo\Collection\CollectionBuilder
+        {
+            return $this->task(TugboatPreviewDeleteAll::class);
+        }
+
+        protected function taskTugboatPreviewCreate(): \Robo\Collection\CollectionBuilder
+        {
+            return $this->task(TugboatPreviewCreate::class);
+        }
+
+        protected function taskTugboatPreviewSet(string $preview): \Robo\Collection\CollectionBuilder
+        {
+            return $this->task(TugboatPreviewSet::class, $preview);
+        }
     }
 }

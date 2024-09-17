@@ -2,7 +2,6 @@
 
 namespace PL\Robo\Task\Testor {
 
-    use Aws\S3\S3Client;
     use PL\Robo\Common\S3BucketAwareTrait;
     use PL\Robo\Common\S3ClientAwareTrait;
     use PL\Robo\Common\TestorConfigAwareTrait;
@@ -34,7 +33,7 @@ namespace PL\Robo\Task\Testor {
 
         function run(): Result
         {
-            if (!$this->checkTerminus()) return new Result($this, 1, $this->message);
+            if (!$this->checkTerminus()) return $this->fail();
             $site = $this->testorConfig->get('pantheon.site');
             $env = $this->env;
 
@@ -63,8 +62,7 @@ namespace PL\Robo\Task\Testor {
             ));
             $this->message = "Uploaded $this->s3Bucket::$name";
 
-            $this->printTaskSuccess($this->message);
-            return new Result($this, 0, $this->message);
+            return $this->pass();
         }
     }
 }

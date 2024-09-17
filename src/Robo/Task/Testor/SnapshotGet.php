@@ -33,7 +33,7 @@ namespace PL\Robo\Task\Testor {
             $taskSnapshotList = $this->collectionBuilder()->taskSnapshotList(array('name' => $this->name, 'element' => $this->element));
             $result = $taskSnapshotList->run();
             if (empty($result['table'])) {
-                return new \Robo\Result($this, 1);
+                return $this->fail();
             }
             // SnapshotList task returns `table` which
             // contains a datetime-sorted array of objects.
@@ -47,8 +47,7 @@ namespace PL\Robo\Task\Testor {
                 'SaveAs' => $this->filename
             ));
             $this->message = "Downloaded $key => $this->filename";
-            $this->printTaskSuccess($this->message);
-            return new \Robo\Result($this, 0, $this->message);
+            return $this->pass();
         }
     }
 }

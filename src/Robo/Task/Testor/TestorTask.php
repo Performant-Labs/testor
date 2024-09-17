@@ -16,7 +16,7 @@ namespace PL\Robo\Task\Testor {
 
         use BuilderAwareTrait;
 
-        protected string $message;
+        protected string $message = '';
 
         function __construct()
         {
@@ -80,42 +80,42 @@ namespace PL\Robo\Task\Testor {
             return $result;
         }
 
-        protected function initTugboat(): bool
+        /**
+         * Shortcut to reduce boilerplate a little bit.
+         *
+         * E.g. if there is method `foo()` that initializes some object,
+         * and returns `false` on fail, it can set `message` within it, then
+         * `run()` can call it as following:
+         * ```
+         * if (!($foo = $this->foo())) {
+         *     return $this->fail();
+         * }
+         * ```
+         *
+         * @return Result
+         */
+        public function fail(): Result
         {
-            $repo = $this->testorConfig->get('tugboat.repo');
-            if (empty($repo)) {
-                $this->message = "Please configure `tugboat.repo` (Use `tugboat ls repos` or dashboard.tugboatqa.com)";
-                return false;
-            }
+            return new Result($this, 1, $this->message);
+        }
 
-            if (!$this->isExecutable('tugboat')) {
-                if (!file_put_contents('tugboat.tar.gz', file_get_contents('https://dashboard.tugboatqa.com/cli/linux/tugboat.tar.gz'))) {
-                    $this->message = "Failed to download https://dashboard.tugboatqa.com/cli/linux/tugboat.tar.gz";
-                    return false;
-                }
-                try {
-                    $archive = new \PharData('tugboat.tar.gz');
-                    $archive->extractTo('.');
-                } catch (\Exception $exception) {
-                    $this->message = "Failed to extract tugboat.tar.gz: " . $exception->getMessage();
-                    return false;
-                }
-
-                // Update PATH to execute tugboat without ./
-                putenv('PATH=' . getenv('PATH') . ':' . getcwd());
-
-                // Authorize tugboat (can be done either by `tugboat auth` or directly editing the config...)
-                $tugboatToken = $this->testorConfig->get('tugboat.token', getenv('TUGBOAT_TOKEN'));
-                file_put_contents(getenv('HOME') . '/.tugboat.yml', "token: $tugboatToken");
-
-                // If in the context of GitHub Actions, save PATH for further steps
-                $githubPath = getenv('GITHUB_PATH');
-                if (!empty($githubPath)) {
-                    file_put_contents($githubPath, getcwd() . "\n", FILE_APPEND);
-                }
-            }
-
-            return true;
+        /**
+         * Shortcut to print and return successful result.
+         *
+         * Can be used as following:
+         * ```
+         * $this->message = 'Happiness rainbow unicorns!';
+         * return $this->pass();
+         * ```
+         *
+         * @return Result
+         */
+        public function pass(): Result
+        {
+            // Print message, because by default Robo doesn't print successful
+            // messages, and empty output may confuse user.
+            $this->printTaskSuccess($this->message ?? 'passed');
+            return new Result($this, 0, $this->message);
         }
 
         protected function checkRclone(): bool
