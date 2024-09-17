@@ -2,6 +2,9 @@
 
 The command-line tool that works hand-in-glove with [Automated Testing Kit](https://www.drupal.org/project/automated_testing_kit).
 
+## Documentation
+Please see https://performantlabs.com/testor/testor.
+
 ## Installation
 
 On bare metal:
