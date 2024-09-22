@@ -15,14 +15,14 @@ vendor/bin/testor self:init
 
 Under DDEV:
 ```shell
-ddev composer install performantlabs/testor
+ddev composer require performantlabs/testor
 ddev exec testor self:init
 ```
 
-After that put your project settings
-to the created configuration files.
+Add the S3-credentials and site name to the .testor.yaml configuration 
+file. See the documentation. 
 
 
 ## Developer Tips
-Don't forget to execute `composer install` after you add or make change of 
+Don't forget to execute `composer install` after you add or change
 tasks definitions or parameters!
