@@ -6,12 +6,6 @@ namespace PL\Tests\Robo\Task\Testor {
 
     class SnapshotCreateTest extends TestorTestCase
     {
-
-//        public function testInjected()
-//        {
-//            $this->assertSame($this->mockS3, $this->mockSnapshotCreate()->getS3Client());
-//        }
-
         /**
          * @param $command
          * @dataProvider providerCommand
@@ -71,12 +65,12 @@ namespace PL\Tests\Robo\Task\Testor {
                 ->shouldReceive('taskExec')
                 ->once()
                 ->with('terminus backup:list performant-labs.dev --format=json')
-                ->andReturn($this->mockTaskExec($snapshotCreate, 0, '{"2": {"file": "11111_database.sql.gz"}, "1": {"file": "22222_database.sql.gz"}}'));
+                ->andReturn($this->mockTaskExec($snapshotCreate, 0, '{"2": {"file": "performant-labs_11111_database.sql.gz"}, "1": {"file": "performant-labs_22222_database.sql.gz"}}'));
             // Command #3
             $mockBuilder
                 ->shouldReceive('taskExec')
                 ->once()
-                ->with('terminus backup:get performant-labs.dev --file=11111_database.sql.gz --to=11111_database.sql.gz')
+                ->with('terminus backup:get performant-labs.dev --file=performant-labs_11111_database.sql.gz --to=performant-labs_11111_database.sql.gz')
                 ->andReturn($this->mockTaskExec(new \Robo\Result($snapshotCreate, 0, 'OK')));
             $snapshotCreate->setBuilder($mockBuilder);
 
@@ -86,8 +80,8 @@ namespace PL\Tests\Robo\Task\Testor {
                 ->shouldReceive('putObject')
                 ->with(array(
                     'Bucket' => 'snapshot',
-                    'Key' => 'test/11111_database.sql.gz',
-                    'SourceFile' => '11111_database.sql.gz'
+                    'Key' => 'test/performant-labs_11111_database.sql.gz',
+                    'SourceFile' => 'performant-labs_11111_database.sql.gz'
                     ))
                 ->andReturn(new \Aws\Result());
             $snapshotCreate->setS3Client($mockS3Client);
@@ -111,12 +105,12 @@ namespace PL\Tests\Robo\Task\Testor {
                 ->shouldReceive('taskExec')
                 ->once()
                 ->with('terminus backup:list performant-labs.dev --format=json')
-                ->andReturn($this->mockTaskExec($snapshotCreate, 0, '{"2": {"file": "11111_files.sql.gz"}, "1": {"file": "22222_files.sql.gz"}}'));
+                ->andReturn($this->mockTaskExec($snapshotCreate, 0, '{"2": {"file": "performant-labs_11111_files.sql.gz"}, "1": {"file": "performant-labs_22222_files.sql.gz"}}'));
             // Command #3
             $mockBuilder
                 ->shouldReceive('taskExec')
                 ->once()
-                ->with('terminus backup:get performant-labs.dev --file=11111_files.sql.gz --to=11111_files.sql.gz')
+                ->with('terminus backup:get performant-labs.dev --file=performant-labs_11111_files.sql.gz --to=performant-labs_11111_files.sql.gz')
                 ->andReturn($this->mockTaskExec(new \Robo\Result($snapshotCreate, 0, 'OK')));
             $snapshotCreate->setBuilder($mockBuilder);
 
@@ -126,8 +120,8 @@ namespace PL\Tests\Robo\Task\Testor {
                 ->shouldReceive('putObject')
                 ->with(array(
                     'Bucket' => 'snapshot',
-                    'Key' => 'test/11111_files.sql.gz',
-                    'SourceFile' => '11111_files.sql.gz'
+                    'Key' => 'test/performant-labs_11111_files.sql.gz',
+                    'SourceFile' => 'performant-labs_11111_files.sql.gz'
                 ))
                 ->andReturn(new \Aws\Result());
             $snapshotCreate->setS3Client($mockS3Client);

@@ -23,13 +23,23 @@ class SnapshotListTest extends TestorTestCase
             ->andReturn(array(
                 'Contents' => array(
                     array(
-                        'Key' => 'test/1111_database.sql.gz',
+                        'Key' => 'test/performant-labs_1111_database.sql.gz',
                         'LastModified' => new \DateTime('2024-09-01'),
                         'Size' => '1324'
                     ),
                     array(
-                        'Key' => 'test/2222_files.sql.gz',
+                        'Key' => 'test/performant-labs_2222_files.sql.gz',
                         'LastModified' => new \DateTime('2024-09-02'),
+                        'Size' => '2134'
+                    ),
+                    array(
+                        'Key' => 'test/other-site_3333_database.sql.gz',
+                        'LastModified' => new \DateTime('2024-09-03'),
+                        'Size' => '2134'
+                    ),
+                    array(
+                        'Key' => 'test/performant-labs_4444_database.sql.gz',
+                        'LastModified' => new \DateTime('2024-09-04'),
                         'Size' => '2134'
                     )
                 )
@@ -39,7 +49,12 @@ class SnapshotListTest extends TestorTestCase
         $this->assertEquals(0, $result->getExitCode());
         $this->assertEquals([
             [
-                'Name' => 'test/1111_database.sql.gz',
+                'Name' => 'test/performant-labs_4444_database.sql.gz',
+                'Date' => new \DateTime('2024-09-04'),
+                'Size' => '2134'
+            ],
+            [
+                'Name' => 'test/performant-labs_1111_database.sql.gz',
                 'Date' => new \DateTime('2024-09-01'),
                 'Size' => '1324'
             ]
@@ -63,12 +78,12 @@ class SnapshotListTest extends TestorTestCase
             ->andReturn(array(
                 'Contents' => array(
                     array(
-                        'Key' => 'test/1111_database.sql.gz',
+                        'Key' => 'test/performant-labs_1111_database.sql.gz',
                         'LastModified' => new \DateTime('2024-09-01'),
                         'Size' => '1324'
                     ),
                     array(
-                        'Key' => 'test/2222_files.sql.gz',
+                        'Key' => 'test/performant-labs_2222_files.sql.gz',
                         'LastModified' => new \DateTime('2024-09-02'),
                         'Size' => '2134'
                     )
@@ -79,7 +94,7 @@ class SnapshotListTest extends TestorTestCase
         $this->assertEquals(0, $result->getExitCode());
         $this->assertEquals([
             [
-                'Name' => 'test/2222_files.sql.gz',
+                'Name' => 'test/performant-labs_2222_files.sql.gz',
                 'Date' => new \DateTime('2024-09-02'),
                 'Size' => '2134'
             ],

@@ -23,12 +23,12 @@ class SnapshotGetTest extends TestorTestCase
             ->andReturn(array(
                 'Contents' => array(
                     array(
-                        'Key' => 'test/1111_database.sql.gz',
+                        'Key' => 'test/performant-labs_1111_database.sql.gz',
                         'LastModified' => new \DateTime('2024-09-01'),
                         'Size' => '1234'
                     ),
                     array(
-                        'Key' => 'test/2222_files.sql.gz',
+                        'Key' => 'test/performant-labs_2222_files.sql.gz',
                         'LastModified' => new \DateTime('2024-09-02'),
                         'Size' => '1324'
                     )
@@ -38,7 +38,7 @@ class SnapshotGetTest extends TestorTestCase
             ->once()
             ->with(array(
                 'Bucket' => 'snapshot',
-                'Key' => 'test/1111_database.sql.gz',
+                'Key' => 'test/performant-labs_1111_database.sql.gz',
                 'SaveAs' => 'test.sql.gz'
             ))
             ->andReturn(array());
@@ -79,12 +79,12 @@ class SnapshotGetTest extends TestorTestCase
             ->andReturn(array(
                 'Contents' => array(
                     array(
-                        'Key' => 'test/1111_database.sql.gz',
+                        'Key' => 'test/performant-labs_1111_database.sql.gz',
                         'LastModified' => new \DateTime('2024-09-01'),
                         'Size' => '1234'
                     ),
                     array(
-                        'Key' => 'test/2222_files.sql.gz',
+                        'Key' => 'test/performant-labs_2222_files.sql.gz',
                         'LastModified' => new \DateTime('2024-09-02'),
                         'Size' => '1324'
                     )
@@ -94,8 +94,8 @@ class SnapshotGetTest extends TestorTestCase
             ->once()
             ->with(array(
                 'Bucket' => 'snapshot',
-                'Key' => 'test/1111_database.sql.gz',
-                'SaveAs' => '1111_database.sql.gz'
+                'Key' => 'test/performant-labs_1111_database.sql.gz',
+                'SaveAs' => 'performant-labs_1111_database.sql.gz'
             ))
             ->andReturn(array());
         $snapshotGet->setS3Client($mockS3Client);
@@ -135,12 +135,12 @@ class SnapshotGetTest extends TestorTestCase
             ->andReturn(array(
                 'Contents' => array(
                     array(
-                        'Key' => 'test/1111_database.sql.gz',
+                        'Key' => 'test/performant-labs_1111_database.sql.gz',
                         'LastModified' => new \DateTime('2024-09-01'),
                         'Size' => '1234'
                     ),
                     array(
-                        'Key' => 'test/2222_files.sql.gz',
+                        'Key' => 'test/performant-labs_2222_files.sql.gz',
                         'LastModified' => new \DateTime('2024-09-02'),
                         'Size' => '1324'
                     )
@@ -150,7 +150,7 @@ class SnapshotGetTest extends TestorTestCase
             ->once()
             ->with(array(
                 'Bucket' => 'snapshot',
-                'Key' => 'test/2222_files.sql.gz',
+                'Key' => 'test/performant-labs_2222_files.sql.gz',
                 'SaveAs' => 'test.sql.gz'
             ))
             ->andReturn(array());

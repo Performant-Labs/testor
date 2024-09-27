@@ -4,14 +4,17 @@ namespace PL\Robo\Task\Testor {
 
     use PL\Robo\Common\S3BucketAwareTrait;
     use PL\Robo\Common\S3ClientAwareTrait;
+    use PL\Robo\Common\TestorConfigAwareTrait;
     use PL\Robo\Contract\S3BucketAwareInterface;
     use PL\Robo\Contract\S3ClientAwareInterface;
+    use PL\Robo\Contract\TestorConfigAwareInterface;
 
     class SnapshotList extends TestorTask
-        implements S3ClientAwareInterface, S3BucketAwareInterface
+        implements S3ClientAwareInterface, S3BucketAwareInterface, TestorConfigAwareInterface
     {
         use S3ClientAwareTrait;
         use S3BucketAwareTrait;
+        use TestorConfigAwareTrait;
 
         protected string $name;
         protected string $element;
@@ -46,7 +49,7 @@ namespace PL\Robo\Task\Testor {
             }
 
             // Filter out elements
-            $table = array_values(array_filter($table, fn($value) => str_contains($value['Name'], $this->element)));
+            $table = array_values(array_filter($table, fn($value) => str_contains($value['Name'], $this->element) && str_contains($value['Name'], $this->testorConfig->get('pantheon.site'))));
 
             return new \Robo\Result($this, 0, '', array('table' => $table));
         }
