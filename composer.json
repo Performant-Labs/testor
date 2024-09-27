@@ -1,5 +1,5 @@
 {
-    "name": "performantlabs/testor",
+    "name": "performant-labs/testor",
     "description": "Robo tasks that work with Automated Testing Kit",
     "type": "robo-tasks",
     "autoload": {
