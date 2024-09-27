@@ -21,8 +21,3 @@ ddev exec testor self:init
 
 Add the S3-credentials and site name to the .testor.yaml configuration 
 file. See the documentation. 
-
-
-## Developer Tips
-Don't forget to execute `composer install` after you add or change
-tasks definitions or parameters!
