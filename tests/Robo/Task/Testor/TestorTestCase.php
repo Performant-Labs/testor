@@ -9,6 +9,7 @@ use League\Container\DefinitionContainerInterface;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 use Mockery\LegacyMockInterface;
 use Mockery\MockInterface;
+use PL\Robo\Common\StorageStrategy;
 use Robo\Collection\CollectionBuilder;
 use Robo\Robo;
 use Robo\Task\Base\Exec;
@@ -32,10 +33,17 @@ class TestorTestCase extends MockeryTestCase implements ContainerAwareInterface
 
         // Set up test dependencies.
         $container->add('testorConfig', new \Consolidation\Config\Config(['pantheon' => ['site' => 'performant-labs'], 's3' => ['config' => '**DUMMY**', 'bucket' => 'snapshot'], 'tugboat' => ['repo' => '1reporepo1']]));
-        $container->add('s3Client', $this->mockS3Client = $this->mockS3Client());
+        $container->add('s3Client', $this->mockS3Client());
         $container->add('s3Bucket', 'snapshot');
+        $container->add('storage', StorageStrategy::class);
 
         $this->setContainer($container);
+    }
+
+    function tearDown(): void
+    {
+        parent::tearDown();
+        Robo::unsetContainer();
     }
 
     public function collectionBuilder(): CollectionBuilder

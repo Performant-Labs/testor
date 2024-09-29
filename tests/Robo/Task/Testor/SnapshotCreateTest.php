@@ -2,6 +2,7 @@
 
 namespace PL\Tests\Robo\Task\Testor {
 
+    use PL\Robo\Common\StorageS3;
     use PL\Robo\Task\Testor\SnapshotCreate;
 
     class SnapshotCreateTest extends TestorTestCase
@@ -75,16 +76,15 @@ namespace PL\Tests\Robo\Task\Testor {
             $snapshotCreate->setBuilder($mockBuilder);
 
             // Mock S3Client.
-            $mockS3Client = $this->mockS3Client();
-            $mockS3Client
+            $this->mockS3Client
                 ->shouldReceive('putObject')
+                ->once()
                 ->with(array(
                     'Bucket' => 'snapshot',
                     'Key' => 'test/performant-labs_11111_database.sql.gz',
                     'SourceFile' => 'performant-labs_11111_database.sql.gz'
                     ))
                 ->andReturn(new \Aws\Result());
-            $snapshotCreate->setS3Client($mockS3Client);
             $result = $snapshotCreate->run();
             $this->assertEquals(0, $result->getExitCode());
         }
@@ -115,16 +115,15 @@ namespace PL\Tests\Robo\Task\Testor {
             $snapshotCreate->setBuilder($mockBuilder);
 
             // Mock S3Client.
-            $mockS3Client = $this->mockS3Client();
-            $mockS3Client
+            $this->mockS3Client
                 ->shouldReceive('putObject')
+                ->once()
                 ->with(array(
                     'Bucket' => 'snapshot',
                     'Key' => 'test/performant-labs_11111_files.sql.gz',
                     'SourceFile' => 'performant-labs_11111_files.sql.gz'
                 ))
                 ->andReturn(new \Aws\Result());
-            $snapshotCreate->setS3Client($mockS3Client);
             $result = $snapshotCreate->run();
             $this->assertEquals(0, $result->getExitCode());
         }
