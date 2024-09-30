@@ -12,6 +12,7 @@ class TestorApplication
 {
     const APPLICATION_NAME = 'Testor';
     const REPOSITORY = 'Performant-Labs/testor';
+    const PACKAGENAME = 'performant-labs/testor';
 
     private Runner $runner;
     private $consoleOutput;
@@ -45,7 +46,7 @@ class TestorApplication
 
     public function run($argv): int
     {
-        $version = \Composer\InstalledVersions::getVersion('performantlabs/testor');
+        $version = \Composer\InstalledVersions::getVersion(self::PACKAGENAME);
         $statusCode = $this->runner->execute($argv, self::APPLICATION_NAME, $version);
         return $statusCode;
     }

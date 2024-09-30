@@ -7,6 +7,7 @@ class TestorConfigInit extends \Robo\Task\BaseTask
     private string $CONFIG = "# Add this config to the version control.
 pantheon:
   site: '[your Pantheon site name]'
+storage: '[s3|sftp]'
 s3:
   config:
     version: 'latest'
@@ -16,6 +17,13 @@ s3:
       key: '[access key]'
       secret: '\${s3_secret}'
   bucket: '[bucket name]'
+sftp:
+  host: '[host]'
+  user: 'sftpuser'
+  key: '/path/to/private/key'
+  # is key is set, it's password to the key, otherwise password to the server
+  password: ''
+  root: 'sftp/upload'
 ";
     private string $SECRET_CONFIG = "# Don't add this config to the version control.
 s3_secret: '[secret key]'

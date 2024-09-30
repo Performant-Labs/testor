@@ -12,8 +12,7 @@ class SnapshotListTest extends TestorTestCase
         $snapshotList = $this->taskSnapshotList(['name' => 'test', 'element' => 'database']);
 
         // Mock S3Client.
-        $mockS3Client = $this->mockS3Client();
-        $mockS3Client->shouldReceive('listObjects')
+        $this->mockS3Client->shouldReceive('listObjects')
             ->once()
             ->with(array(
                 'Bucket' => 'snapshot',
@@ -44,7 +43,6 @@ class SnapshotListTest extends TestorTestCase
                     )
                 )
             ));
-        $snapshotList->setS3Client($mockS3Client);
         $result = $snapshotList->run();
         $this->assertEquals(0, $result->getExitCode());
         $this->assertEquals([
@@ -67,8 +65,7 @@ class SnapshotListTest extends TestorTestCase
         $snapshotList = $this->taskSnapshotList(['name' => 'test', 'element' => 'files']);
 
         // Mock S3Client.
-        $mockS3Client = $this->mockS3Client();
-        $mockS3Client->shouldReceive('listObjects')
+        $this->mockS3Client->shouldReceive('listObjects')
             ->once()
             ->with(array(
                 'Bucket' => 'snapshot',
@@ -89,7 +86,6 @@ class SnapshotListTest extends TestorTestCase
                     )
                 )
             ));
-        $snapshotList->setS3Client($mockS3Client);
         $result = $snapshotList->run();
         $this->assertEquals(0, $result->getExitCode());
         $this->assertEquals([
@@ -106,8 +102,7 @@ class SnapshotListTest extends TestorTestCase
         $snapshotList = $this->taskSnapshotList(['name' => 'test', 'element' => 'database']);
 
         // Mock S3Client.
-        $mockS3Client = $this->mockS3Client();
-        $mockS3Client->shouldReceive('listObjects')
+        $this->mockS3Client->shouldReceive('listObjects')
             ->once()
             ->with(array(
                 'Bucket' => 'snapshot',
@@ -115,7 +110,6 @@ class SnapshotListTest extends TestorTestCase
                 'Prefix' => 'test'
             ))
             ->andReturn(array('Contents' => null));
-        $snapshotList->setS3Client($mockS3Client);
         $result = $snapshotList->run();
         $this->assertEquals(0, $result->getExitCode());
         $this->assertEquals([], $result['table']);

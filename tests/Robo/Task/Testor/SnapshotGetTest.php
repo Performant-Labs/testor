@@ -12,8 +12,7 @@ class SnapshotGetTest extends TestorTestCase
         $snapshotGet = $this->taskSnapshotGet(['name' => 'test', 'output' => 'test.sql.gz', 'element' => 'database']);
 
         // Mock S3Client.
-        $mockS3Client = $this->mockS3Client();
-        $mockS3Client->shouldReceive('listObjects')
+        $this->mockS3Client->shouldReceive('listObjects')
             ->once()
             ->with(array(
                 'Bucket' => 'snapshot',
@@ -34,7 +33,7 @@ class SnapshotGetTest extends TestorTestCase
                     )
                 )
             ));
-        $mockS3Client->shouldReceive('getObject')
+        $this->mockS3Client->shouldReceive('getObject')
             ->once()
             ->with(array(
                 'Bucket' => 'snapshot',
@@ -42,7 +41,6 @@ class SnapshotGetTest extends TestorTestCase
                 'SaveAs' => 'test.sql.gz'
             ))
             ->andReturn(array());
-        $snapshotGet->setS3Client($mockS3Client);
 
         // Now things are going tricky, since SnapshotGet uses
         // SnapshotList and it's not available because Testor
@@ -50,7 +48,6 @@ class SnapshotGetTest extends TestorTestCase
         // So, we must mock builder once again (like in SnapshotCreateTest),
         // and make it return SnapshotList available here.
         $snapshotList = $this->taskSnapshotList(['name' => 'test', 'element' => 'database']);
-        $snapshotList->setS3Client($mockS3Client);
         $mockBuilder = $this->mockCollectionBuilder();
         $mockBuilder->shouldReceive('taskSnapshotList')
             ->once()
@@ -68,8 +65,7 @@ class SnapshotGetTest extends TestorTestCase
         $snapshotGet = $this->taskSnapshotGet(['name' => 'test', 'element' => 'database']);
 
         // Mock S3Client.
-        $mockS3Client = $this->mockS3Client();
-        $mockS3Client->shouldReceive('listObjects')
+        $this->mockS3Client->shouldReceive('listObjects')
             ->once()
             ->with(array(
                 'Bucket' => 'snapshot',
@@ -90,7 +86,7 @@ class SnapshotGetTest extends TestorTestCase
                     )
                 )
             ));
-        $mockS3Client->shouldReceive('getObject')
+        $this->mockS3Client->shouldReceive('getObject')
             ->once()
             ->with(array(
                 'Bucket' => 'snapshot',
@@ -98,7 +94,6 @@ class SnapshotGetTest extends TestorTestCase
                 'SaveAs' => 'performant-labs_1111_database.sql.gz'
             ))
             ->andReturn(array());
-        $snapshotGet->setS3Client($mockS3Client);
 
         // Now things are going tricky, since SnapshotGet uses
         // SnapshotList and it's not available because Testor
@@ -106,7 +101,6 @@ class SnapshotGetTest extends TestorTestCase
         // So, we must mock builder once again (like in SnapshotCreateTest),
         // and make it return SnapshotList available here.
         $snapshotList = $this->taskSnapshotList(['name' => 'test', 'element' => 'database']);
-        $snapshotList->setS3Client($mockS3Client);
         $mockBuilder = $this->mockCollectionBuilder();
         $mockBuilder->shouldReceive('taskSnapshotList')
             ->once()
@@ -124,8 +118,7 @@ class SnapshotGetTest extends TestorTestCase
         $snapshotGet = $this->taskSnapshotGet(['name' => 'test', 'output' => 'test.sql.gz', 'element' => 'files']);
 
         // Mock S3Client.
-        $mockS3Client = $this->mockS3Client();
-        $mockS3Client->shouldReceive('listObjects')
+        $this->mockS3Client->shouldReceive('listObjects')
             ->once()
             ->with(array(
                 'Bucket' => 'snapshot',
@@ -146,7 +139,7 @@ class SnapshotGetTest extends TestorTestCase
                     )
                 )
             ));
-        $mockS3Client->shouldReceive('getObject')
+        $this->mockS3Client->shouldReceive('getObject')
             ->once()
             ->with(array(
                 'Bucket' => 'snapshot',
@@ -154,7 +147,6 @@ class SnapshotGetTest extends TestorTestCase
                 'SaveAs' => 'test.sql.gz'
             ))
             ->andReturn(array());
-        $snapshotGet->setS3Client($mockS3Client);
 
         // Now things are going tricky, since SnapshotGet uses
         // SnapshotList and it's not available because Testor
@@ -162,7 +154,6 @@ class SnapshotGetTest extends TestorTestCase
         // So, we must mock builder once again (like in SnapshotCreateTest),
         // and make it return SnapshotList available here.
         $snapshotList = $this->taskSnapshotList(['name' => 'test', 'element' => 'files']);
-        $snapshotList->setS3Client($mockS3Client);
         $mockBuilder = $this->mockCollectionBuilder();
         $mockBuilder->shouldReceive('taskSnapshotList')
             ->once()
@@ -179,8 +170,7 @@ class SnapshotGetTest extends TestorTestCase
         $snapshotGet = $this->taskSnapshotGet(['name' => 'test', 'output' => 'test.sql.gz', 'element' => 'database']);
 
         // Mock S3Client.
-        $mockS3Client = $this->mockS3Client();
-        $mockS3Client->shouldReceive('listObjects')
+        $this->mockS3Client->shouldReceive('listObjects')
             ->once()
             ->with(array(
                 'Bucket' => 'snapshot',
@@ -190,7 +180,6 @@ class SnapshotGetTest extends TestorTestCase
             ->andReturn(array(
                 'Contents' => null
             ));
-        $snapshotGet->setS3Client($mockS3Client);
 
         // Now things are going tricky, since SnapshotGet uses
         // SnapshotList and it's not available because Testor
@@ -198,7 +187,6 @@ class SnapshotGetTest extends TestorTestCase
         // So, we must mock builder once again (like in SnapshotCreateTest),
         // and make it return SnapshotList available here.
         $snapshotList = $this->taskSnapshotList(['name' => 'test', 'element' => 'database']);
-        $snapshotList->setS3Client($mockS3Client);
         $mockBuilder = $this->mockCollectionBuilder();
         $mockBuilder->shouldReceive('taskSnapshotList')
             ->once()

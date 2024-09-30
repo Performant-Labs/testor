@@ -2,6 +2,7 @@
 
 namespace PL\Robo;
 
+use PL\Robo\Common\StorageStrategy;
 use Psr\Container\ContainerInterface;
 use Robo\Robo;
 
@@ -47,7 +48,9 @@ class Testor
         Robo::addShared($container, 's3Client', \Aws\S3\S3Client::class)
             ->addArgument($testorConfig->get('s3.config'));
         Robo::addShared($container, 's3Bucket', $testorConfig->get('s3.bucket'));
+        Robo::addShared($container, 'storage', StorageStrategy::class);
 
+//        TODO Figure out how they work so we can get rid of injectTestorDependencies()
         // Register Testor-specific inflectors.
         $container->inflector(\PL\Robo\Contract\TestorConfigAwareInterface::class)
             ->invokeMethod('setTestorConfig', ['testorConfig']);
@@ -57,5 +60,25 @@ class Testor
             ->invokeMethod('setS3Bucket', ['s3Bucket']);
 
         self::$isConfigured = true;
+    }
+
+    public static function getTestorConfig()
+    {
+        return Robo::getContainer()->get('testorConfig');
+    }
+
+    public static function getS3Client()
+    {
+        return Robo::getContainer()->get('s3Client');
+    }
+
+    public static function getS3Bucket()
+    {
+        return Robo::getContainer()->get('s3Bucket');
+    }
+
+    public static function getStorage()
+    {
+        return Robo::getContainer()->get('storage');
     }
 }
