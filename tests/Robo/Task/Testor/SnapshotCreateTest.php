@@ -91,6 +91,12 @@ namespace PL\Tests\Robo\Task\Testor {
 
         public function testSnapshotCreateFiles()
         {
+            // Mock shell_exec (for `isExecutable`)
+            $mockShellExec = $this->mockBuiltIn('shell_exec');
+            $mockShellExec->expects(self::once())
+                ->with('which terminus')
+                ->willReturn('/usr/bin/terminus');
+
             $mockBuilder = $this->mockCollectionBuilder();
 
             $snapshotCreate = $this->taskSnapshotCreate(['env' => 'dev', 'name' => 'test', 'element' => 'files']);
