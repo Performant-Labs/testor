@@ -1,5 +1,7 @@
 # Testor
 
+![CI](https://github.com/Performant-Labs/testor/actions/workflows/php.yml/badge.svg?branch=main)
+
 The command-line tool that works hand-in-glove with [Automated Testing Kit](https://www.drupal.org/project/automated_testing_kit).
 
 ## Documentation

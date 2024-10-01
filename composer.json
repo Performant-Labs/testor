@@ -27,5 +27,8 @@
         "mockery/mockery": "^1.6",
         "php-mock/php-mock": "^2.5",
         "php-mock/php-mock-phpunit": "^2.10"
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit tests"
     }
 }
