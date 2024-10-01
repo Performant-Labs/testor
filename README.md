@@ -1,6 +1,6 @@
 # Testor
 
-![CI](https://github.com/Performant-Labs/testor/actions/workflows/php.yml/badge.svg?branch=main)
+[![CI](https://github.com/Performant-Labs/testor/actions/workflows/php.yml/badge.svg?branch=main)](https://github.com/Performant-Labs/testor/actions/workflows/php.yml?query=workflow%3APHP)
 
 The command-line tool that works hand-in-glove with [Automated Testing Kit](https://www.drupal.org/project/automated_testing_kit).
 
