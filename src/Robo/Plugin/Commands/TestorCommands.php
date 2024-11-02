@@ -2,19 +2,25 @@
 
 namespace PL\Robo\Plugin\Commands;
 
-use Consolidation\AnnotatedCommand\CommandResult;
 use Consolidation\OutputFormatters\StructuredData\RowsOfFields;
 use Consolidation\OutputFormatters\StructuredData\UnstructuredListData;
-use League\Container\ContainerAwareTrait;
-use PL\Robo\Task\Testor\SnapshotCreate;
+use PL\Robo\Common\TestorDependencyInjectorTrait;
+use PL\Robo\DO\Snapshot;
+use PL\Robo\Common\TestorConfigAwareTrait;
+use PL\Robo\Contract\TestorConfigAwareInterface;
 use PL\Robo\Task\Testor\Tasks;
 use Robo\Result;
-use Robo\Symfony\ConsoleIO;
-use Robo\TaskAccessor;
 
-class TestorCommands extends \Robo\Tasks
+class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface
 {
     use Tasks;
+    use TestorConfigAwareTrait;
+    use TestorDependencyInjectorTrait;
+
+    public function __construct()
+    {
+        $this->injectTestorDependencies();
+    }
 
     /**
      * Initialize Testor.
@@ -39,16 +45,79 @@ class TestorCommands extends \Robo\Tasks
      *
      * @param array $opts
      * @return Result
-     * @option $env Pantheon env
+     * @option $env It can be either '@self' (current database), a Drush alias,
+     * or Pantheon env
      * @option $name Name of the snapshot, such as "developer" or "preview",
      * will be prefixed to the real unique snapshot name (it can be thought
      * as a folder)
+     * @option $do-not-sanitize Skip database sanitize command
      * @option $element Element to backup (code, database, files)
      *
      */
-    public function snapshotCreate(array $opts = ['env' => 'dev', 'name' => '', 'element' => 'database'] ): Result
+    public function snapshotCreate(array $opts = ['env' => '@self', 'name' => '', 'element' => 'database', 'do-not-sanitize' => false]): Result
     {
-        return$this->taskSnapshotCreate($opts)->run();
+        $task = $this->collectionBuilder();
+
+        $element = $opts['element'];
+        $env = $opts['env'];
+        $ispantheon = !str_starts_with($env, '@');
+        $dosanitize = $this->testorConfig->has('sanitize.command') && !$opts['do-not-sanitize'];
+
+        // Normalize element.
+        $element = match ($element) {
+            'database', 'db' => 'database',
+            'code' => 'code',
+            'files' => 'files',
+        };
+        $opts['element'] = $element;
+
+        // Make a target file name (without extension, it can be .sql.gz, tar.gz later then).
+        $filename = implode('_', [
+            $this->testorConfig->get('pantheon.site'),
+            $ispantheon ? $env : 'local',
+            date_format(new \DateTime(), 'Y-m-d\\TH-m-s_T'),
+            $element
+        ]);
+        $opts['filename'] = $filename;
+
+        if ($element == 'database') {
+            if ($ispantheon) {
+                // Create a snapshot remotly via `terminus drush ...`
+                $task->taskSnapshotCreate([...$opts, 'ispantheon' => true, 'gzip' => !$dosanitize]);
+
+                if (!$dosanitize) {
+                    return $task
+                        // Sanitize here to show "Skip..." message.
+                        ->taskDbSanitize($opts)
+                        ->taskSnapshotPut($opts)
+                        ->run();
+                }
+
+                // Import snapshot to the local database
+                $task->taskSnapshotImport([...$opts, 'gzip' => false]);
+            } elseif ($env != '@self') {
+                // Sync given database to $self
+                // (Drush can only do sanitization against the local db).
+                $task->taskDbSync($env, '@self');
+            }
+
+            // Do sanitize.
+            $task->taskDbSanitize($opts);
+
+            // Create a snapshot locally.
+            $task->taskSnapshotCreate([...$opts, 'ispantheon' => false]);
+
+            // Put the snapshot to the storage.
+            $task->taskSnapshotPut($opts);
+        } else {
+            // Handle files and code (should be enough to just copy via SFTP...)
+            // But not clear how to gzip them over SFTP.
+            // So fallback to old good backups.
+            $task->taskSnapshotViaBackup($opts)
+                ->taskSnapshotPut($opts);
+        }
+
+        return $task->run();
     }
 
     /** List snapshots from the storage.

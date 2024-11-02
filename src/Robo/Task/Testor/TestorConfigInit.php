@@ -7,6 +7,8 @@ class TestorConfigInit extends \Robo\Task\BaseTask
     private string $CONFIG = "# Add this config to the version control.
 pantheon:
   site: '[your Pantheon site name]'
+sanitize:
+  command: 'drush sql:sanitize'
 storage: '[s3|sftp]'
 s3:
   config:
@@ -21,7 +23,7 @@ sftp:
   host: '[host]'
   user: 'sftpuser'
   key: '/path/to/private/key'
-  # is key is set, it's password to the key, otherwise password to the server
+  # if key is set, it's password to the key, otherwise password to the server
   password: ''
   root: 'sftp/upload'
 ";
