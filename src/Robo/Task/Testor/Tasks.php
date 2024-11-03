@@ -13,9 +13,34 @@ namespace PL\Robo\Task\Testor {
             return $this->task(TestorCustomCommand::class);
         }
 
+        protected function taskDbSync(string $source, string $target): \Robo\Collection\CollectionBuilder
+        {
+            return $this->task(DbSync::class, $source, $target);
+        }
+
+        protected function taskDbSanitize(array $opts): \Robo\Collection\CollectionBuilder
+        {
+            return $this->task(DbSanitize::class, $opts);
+        }
+
         protected function taskSnapshotCreate(array $opts): \Robo\Collection\CollectionBuilder
         {
             return $this->task(SnapshotCreate::class, $opts);
+        }
+
+        protected function taskSnapshotImport(array $opts): \Robo\Collection\CollectionBuilder
+        {
+            return $this->task(SnapshotImport::class, $opts);
+        }
+
+        protected function taskSnapshotPut(array $opts): \Robo\Collection\CollectionBuilder
+        {
+            return $this->task(SnapshotPut::class, $opts);
+        }
+
+        protected function taskSnapshotViaBackup(array $opts): \Robo\Collection\CollectionBuilder
+        {
+            return $this->task(SnapshotViaBackup::class, $opts);
         }
 
         protected function taskSnapshotList(array $opts): \Robo\Collection\CollectionBuilder
