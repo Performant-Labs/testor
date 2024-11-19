@@ -24,12 +24,10 @@ class SnapshotImport extends TestorTask
 
         if ($this->gzip) {
             // Extract .sql file.
-            try {
-                $phar = new \PharData("$filename.tar.gz");
-                $phar->extractTo('.');
-            } catch (\Exception $exception) {
-                $this->message = $exception->getMessage();
-                return $this->fail();
+            /** @var \Robo\Result $result */
+            $result = $this->collectionBuilder()->taskArchiveUnpack($filename)->run();
+            if (!$result->wasSuccessful()) {
+                return $result;
             }
         }
 

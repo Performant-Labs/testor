@@ -61,15 +61,10 @@ class SnapshotCreate extends TestorTask implements TestorConfigAwareInterface
             }
 
             if ($this->gzip) {
-                try {
-                    $phar = new \PharData("$filename.tar");
-                    $phar->addFile("$filename.sql");
-                    $phar->compress(\Phar::GZ);
-                    unlink("$filename.sql");
-                    unlink("$filename.tar");
-                } catch (\Exception $exception) {
-                    $this->message = $exception->getMessage();
-                    return $this->fail();
+                /** @var \Robo\Result $result */
+                $result = $this->collectionBuilder()->taskArchivePack($filename, "$filename.sql")->rmOrig()->run();
+                if (!$result->wasSuccessful()) {
+                    return $result;
                 }
             }
         } else {
