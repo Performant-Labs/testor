@@ -13,6 +13,16 @@ namespace PL\Robo\Task\Testor {
             return $this->task(TestorCustomCommand::class);
         }
 
+        protected function taskArchivePack(string $archive, string... $files): \Robo\Collection\CollectionBuilder
+        {
+            return $this->task(ArchivePack::class, $archive, ...$files);
+        }
+
+        protected function taskArchiveUnpack(string $archive, string $dir = '.'): \Robo\Collection\CollectionBuilder
+        {
+            return $this->task(ArchiveUnpack::class, $archive, $dir);
+        }
+
         protected function taskDbSync(string $source, string $target): \Robo\Collection\CollectionBuilder
         {
             return $this->task(DbSync::class, $source, $target);

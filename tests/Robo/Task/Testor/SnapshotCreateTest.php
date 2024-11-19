@@ -109,6 +109,13 @@ namespace PL\Tests\Robo\Task\Testor {
                 ->with('drush sql:dump > __test_snapshot_create.sql')
                 ->andReturn($this->mockTaskExec($snapshotCreate, 0, 'OK'));
             $snapshotCreate->setBuilder($mockBuilder);
+            // Pass ArchivePack as is. (Consider mock it and test separately.)
+            $mockBuilder->shouldReceive('taskArchivePack')
+                ->once()
+                ->andReturnUsing(function (...$whateverargs) {
+                    $archivePack = $this->taskArchivePack(...$whateverargs);
+                    return $archivePack;
+                });
 
             $result = $snapshotCreate->run();
             $this->assertEquals(0, $result->getExitCode());

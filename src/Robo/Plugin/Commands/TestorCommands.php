@@ -58,26 +58,15 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface
     {
         $task = $this->collectionBuilder();
 
-        $element = $opts['element'];
         $env = $opts['env'];
         $ispantheon = !str_starts_with($env, '@');
         $dosanitize = $this->testorConfig->has('sanitize.command') && !$opts['do-not-sanitize'];
 
         // Normalize element.
-        $element = match ($element) {
-            'database', 'db' => 'database',
-            'code' => 'code',
-            'files' => 'files',
-        };
-        $opts['element'] = $element;
+        list($element, $opts) = $this->normalizeElement($opts);
 
-        // Make a target file name (without extension, it can be .sql.gz, tar.gz later then).
-        $filename = implode('_', [
-            $this->testorConfig->get('pantheon.site'),
-            $ispantheon ? $env : 'local',
-            date_format(new \DateTime(), 'Y-m-d\\TH-m-s_T'),
-            $element
-        ]);
+        // Make a target file name (without extension, it can be .sql.gz, tar.gz later than).
+        $filename = $this->getSnapshotFilename($ispantheon ? $env : 'local', $element);
         $opts['filename'] = $filename;
 
         if ($element == 'database') {
@@ -118,6 +107,39 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface
         }
 
         return $task->run();
+    }
+
+    /**
+     * Put snapshot from the local file system to the storage.
+     *
+     * @param string $file Local file name
+     * @param array $opts
+     * @option $name Name of the snapshot, such as "developer" or "preview",
+     * will be prefixed to the real unique snapshot name (it can be thought as
+     * a folder)
+     * @option $element Element to put (database, code, files). Must be
+     * consistent with the content of the file!
+     * @return Result
+     */
+    public function snapshotPut(string $file, array $opts = ['name' => '', 'element' => 'database'])
+    {
+        $task = $this->collectionBuilder();
+
+        list($element, $opts) = $this->normalizeElement($opts);
+        $filename = $this->getSnapshotFilename('local', $element);
+        $opts['filename'] = $filename;
+
+        preg_match('/(.*?)(\.tar|\.sql)?(\.gz)?$/', $file, $m);
+        $localfilename = $m[1];
+        $opts['localfilename'] = $localfilename;
+        if ($m[3]) {
+        } elseif ($m[2] == '.sql') {
+            $task->taskArchivePack($localfilename, $file);
+        } else {
+            return Result::error($task, "file must be .gz | .sql");
+        }
+
+        return$task->taskSnapshotPut($opts)->run();
     }
 
     /** List snapshots from the storage.
@@ -180,5 +202,36 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface
     public function previewSet(string $preview): Result
     {
         return $this->taskTugboatPreviewSet($preview)->run();
+    }
+
+    /**
+     * @param array $opts
+     * @return array
+     */
+    protected function normalizeElement(array $opts): array
+    {
+        $element = $opts['element'];
+        $element = match ($element) {
+            'database', 'db' => 'database',
+            'code' => 'code',
+            'files' => 'files',
+        };
+        $opts['element'] = $element;
+        return array($element, $opts);
+    }
+
+    /**
+     * @param string $env
+     * @param string $element
+     * @return string
+     */
+    protected function getSnapshotFilename(string $env, string $element): string
+    {
+        return implode('_', [
+            $this->testorConfig->get('pantheon.site'),
+            $env,
+            date_format(new \DateTime(), 'Y-m-d\\TH-m-s_T'),
+            $element
+        ]);
     }
 }
