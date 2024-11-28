@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/Performant-Labs/testor/actions/workflows/php.yml/badge.svg?branch=main)](https://github.com/Performant-Labs/testor/actions/workflows/php.yml?query=workflow%3APHP)
 
-The command-line tool that works hand-in-glove with [Automated Testing Kit](https://www.drupal.org/project/automated_testing_kit).
+The command-line database and file snapshot management tool for Drupal.
 
 ## Documentation
 Please see https://performantlabs.com/testor/testor.
