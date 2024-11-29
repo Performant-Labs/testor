@@ -1,3 +1,19 @@
+Testor 1.4.0, 2024-??
+------------------------
+Changes since 1.3.0:
+-
+
+Testor 1.3.0, 2024-11-19
+------------------------
+Changes since 1.3.0:
+- Upload snapshot from a local file.
+- Added a workflow (php.yml) to build project and run unit tests.
+
+Testor 1.2.0, 2024-09-17
+------------------------
+Changes since 1.0.0:
+- Added the --element switch and the ability to work with files.
+
 Testor 1.1.0, 2024-09-17
 ------------------------
 Changes since 1.0.0:

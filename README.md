@@ -21,5 +21,5 @@ ddev composer require performantlabs/testor
 ddev exec testor self:init
 ```
 
-Add the S3-credentials and site name to the .testor.yaml configuration 
-file. See the documentation. 
+Add the S3 or SFTP credentials and site name to the .testor.yaml configuration
+file. See the documentation.
