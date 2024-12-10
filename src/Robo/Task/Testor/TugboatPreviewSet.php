@@ -37,6 +37,11 @@ class TugboatPreviewSet extends TugboatTask
         $url = $service['urls'][0];
         $service = $service['id'];  // service as string replaces service as an object...
 
+        // URL must end with '/' in ATK.
+        if (!str_ends_with($url, '/')) {
+            $url = $url . '/';
+        }
+
         // Parse playwright.config.js to change baseURL.
         // While we can use `peast` or some other sophisticated
         // libs here. Let keep it simple and use regexp for now.
