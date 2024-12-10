@@ -8,7 +8,7 @@ class TugboatPreviewCreate extends TugboatTask
     public function run()
     {
         if (!$this->initTugboat()) {
-            return new $this->fail();
+            return $this->fail();
         }
 
         $runDate = date("Y-m-d H:i:s");

@@ -101,7 +101,7 @@ class TugboatPreviewSetTest extends TestorTestCase
                   blabla: 'blablablaj',
                   /* Base URL */
                   use: {
-                    baseURL: 'https://tugboatqa.com/test',
+                    baseURL: 'https://tugboatqa.com/test/',
                   }
                 });
                 ",
@@ -155,7 +155,7 @@ class TugboatPreviewSetTest extends TestorTestCase
                   blabla: 'blablablaj',
                   /* Base URL */
                   use: {
-baseURL: 'https://tugboatqa.com/test',
+baseURL: 'https://tugboatqa.com/test/',
                   }
                 });
                 ",
@@ -209,7 +209,7 @@ baseURL: 'https://tugboatqa.com/test',
                   blabla: 'blablablaj',
                   /* Base URL */
                   use: {
-                    baseURL: 'https://tugboatqa.com/test',
+                    baseURL: 'https://tugboatqa.com/test/',
                   }
                 });
                 ",
