@@ -13,6 +13,11 @@ class TugboatPreviewDeleteAllTest extends TestorTestCase
             ->with('which tugboat')
             ->willReturn('/usr/bin/tugboat');
 
+        $mockFileExists = $this->mockBuiltIn('file_exists');
+        $mockFileExists->expects(self::once())
+            ->with(getenv('HOME') . '/.tugboat.yml')
+            ->willReturn(true);
+
         /** @var TugboatPreviewDeleteAll $tugboatPreviewDeleteAll */
         $tugboatPreviewDeleteAll = $this->taskTugboatPreviewDeleteAll();
 

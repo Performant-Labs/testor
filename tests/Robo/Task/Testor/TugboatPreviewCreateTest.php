@@ -13,6 +13,11 @@ class TugboatPreviewCreateTest extends TestorTestCase
             ->with('which tugboat')
             ->willReturn('/usr/bin/tugboat');
 
+        $mockFileExists = $this->mockBuiltIn('file_exists');
+        $mockFileExists->expects(self::once())
+            ->with(getenv('HOME') . '/.tugboat.yml')
+            ->willReturn(true);
+
         $mockDate = $this->mockBuiltIn('date');
         $mockDate->expects(self::once())
             ->willReturn('1970-01-01 00:00:00');
