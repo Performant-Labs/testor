@@ -22,6 +22,11 @@ class TugboatPreviewSetTest extends TestorTestCase
             ->with('which tugboat')
             ->willReturn('/usr/bin/tugboat');
 
+        $mockFileExists = $this->mockBuiltIn('file_exists');
+        $mockFileExists->expects(self::once())
+            ->with(getenv('HOME') . '/.tugboat.yml')
+            ->willReturn(true);
+
         $mockFileGetContents = $this->mockBuiltIn('file_get_contents');
         $mockFileGetContents->expects(self::exactly(2))
             ->withReturnMap([

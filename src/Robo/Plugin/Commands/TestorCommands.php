@@ -3,6 +3,7 @@
 namespace PL\Robo\Plugin\Commands;
 
 use Consolidation\OutputFormatters\StructuredData\RowsOfFields;
+use Consolidation\OutputFormatters\StructuredData\UnstructuredData;
 use Consolidation\OutputFormatters\StructuredData\UnstructuredListData;
 use PL\Robo\Common\TestorDependencyInjectorTrait;
 use PL\Robo\DO\Snapshot;
@@ -185,12 +186,12 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface
     /**
      * Create a new preview on Tugboat.
      *
-     * @return UnstructuredListData Preview in Tugboat's format
+     * @return UnstructuredData Preview in Tugboat's format
      */
-    public function previewCreate(): UnstructuredListData
+    public function previewCreate(): UnstructuredData|Result
     {
         $result = $this->taskTugboatPreviewCreate()->run();
-        return $result['preview'] ? new UnstructuredListData($result['preview']) : $result;
+        return isset($result['preview']) ? new UnstructuredData($result['preview']) : $result;
     }
 
     /**

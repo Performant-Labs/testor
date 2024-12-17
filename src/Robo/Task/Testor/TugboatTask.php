@@ -30,7 +30,7 @@ abstract class TugboatTask extends TestorTask
             }
             try {
                 $archive = new \PharData('tugboat.tar.gz');
-                $archive->extractTo('.');
+                $archive->extractTo('.', null, true);
             } catch (\Exception $exception) {
                 $this->message = "Failed to extract tugboat.tar.gz: " . $exception->getMessage();
                 return false;
@@ -39,6 +39,14 @@ abstract class TugboatTask extends TestorTask
             // Symfony's ignoring changed PATH, so update $command instead.
             $this->tugboat = './tugboat';
 
+            // If in the context of GitHub Actions, save PATH for further steps
+            $githubPath = getenv('GITHUB_PATH');
+            if (!empty($githubPath)) {
+                file_put_contents($githubPath, getcwd() . "\n", FILE_APPEND);
+            }
+        }
+
+        if (!file_exists(getenv('HOME') . '/.tugboat.yml')) {
             // Authorize tugboat (can be done either by `tugboat auth` or directly editing the config...)
             $tugboatToken = $this->testorConfig->get('tugboat.token', getenv('TUGBOAT_TOKEN'));
             if (empty($tugboatToken)) {
@@ -46,12 +54,6 @@ abstract class TugboatTask extends TestorTask
                 return false;
             }
             file_put_contents(getenv('HOME') . '/.tugboat.yml', "token: $tugboatToken");
-
-            // If in the context of GitHub Actions, save PATH for further steps
-            $githubPath = getenv('GITHUB_PATH');
-            if (!empty($githubPath)) {
-                file_put_contents($githubPath, getcwd() . "\n", FILE_APPEND);
-            }
         }
 
         return true;
