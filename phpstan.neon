@@ -1,0 +1,14 @@
+parameters:
+    level: 0
+    reportUnmatchedIgnoredErrors: true
+    phpVersion: 80100  # Check against PHP 8.1
+includes: 
+    - vendor/phpstan/phpstan-strict-rules/rules.neon
+
+
+
+#parameters:
+#	level: 4
+#	paths:
+#		- src
+#		- tests

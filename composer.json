@@ -26,7 +26,9 @@
         "phpunit/phpunit": "^10.5",
         "mockery/mockery": "^1.6",
         "php-mock/php-mock": "^2.5",
-        "php-mock/php-mock-phpunit": "^2.10"
+        "php-mock/php-mock-phpunit": "^2.10",
+        "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan-strict-rules": "^2.0"
     },
     "scripts": {
         "test": "vendor/bin/phpunit tests"

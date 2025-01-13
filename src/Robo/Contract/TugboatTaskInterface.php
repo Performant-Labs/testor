@@ -2,7 +2,7 @@
 
 namespace PL\Robo\Contract;
 
-interface TugboatTaskInterface
-{
-    function initTugboat(): bool;
+interface TugboatTaskInterface {
+  function initTugboat(): bool;
+
 }

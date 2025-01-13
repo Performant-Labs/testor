@@ -8,17 +8,15 @@ use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class TestorApplication
-{
-    const APPLICATION_NAME = 'Testor';
-    const REPOSITORY = 'Performant-Labs/testor';
-    const PACKAGENAME = 'performant-labs/testor';
+class TestorApplication {
+  const APPLICATION_NAME = 'Testor';
+  const REPOSITORY = 'Performant-Labs/testor';
+  const PACKAGENAME = 'performant-labs/testor';
 
-    private Runner $runner;
-    private $consoleOutput;
+  private Runner $runner;
+  private $consoleOutput;
 
-    public function __construct($classLoader)
-    {
+  public function __construct($classLoader) {
 // Theoretically, that is how we should set a custom container.
 // But in practice, Robo skips a whole bunch of usefulnesses if
 // container is set from the user code and not created while run()
@@ -27,27 +25,32 @@ class TestorApplication
 //        // Create and configure container.
 //        $container = Testor::createContainer();
 
-        // Initialize Robo Runner.
+    // Initialize Robo Runner.
 //        $this->consoleOutput = $container->get('output');
-        $configFilePath = getenv('ROBO_CONFIG') ?: getenv('HOME') . '/.robo/robo.yml';
-        $runner = new \Robo\Runner(\PL\Robo\Plugin\Commands\TestorCommands::class);
-        $runner
-            ->setRelativePluginNamespace('Robo\Plugin')
-            ->setSelfUpdateRepository(self::REPOSITORY)
-            ->setConfigurationFilename($configFilePath)
-            ->setEnvConfigPrefix('ROBO')
-            ->setClassLoader($classLoader);
+    if (getenv('ROBO_CONFIG')) {
+      $configFilePath = getenv('ROBO_CONFIG');
+    }
+    else {
+      $configFilePath = getenv('HOME') . '/.robo/robo.yml';
+    }
+    $runner = new \Robo\Runner(\PL\Robo\Plugin\Commands\TestorCommands::class);
+    $runner
+      ->setRelativePluginNamespace('Robo\Plugin')
+      ->setSelfUpdateRepository(self::REPOSITORY)
+      ->setConfigurationFilename($configFilePath)
+      ->setEnvConfigPrefix('ROBO')
+      ->setClassLoader($classLoader);
 
-        // Befriend container with runner.
+    // Befriend container with runner.
 //        $runner->setContainer($container);
 
-        $this->runner = $runner;
-    }
+    $this->runner = $runner;
+  }
 
-    public function run($argv): int
-    {
-        $version = \Composer\InstalledVersions::getVersion(self::PACKAGENAME);
-        $statusCode = $this->runner->execute($argv, self::APPLICATION_NAME, $version);
-        return $statusCode;
-    }
+  public function run($argv): int {
+    $version = \Composer\InstalledVersions::getVersion(self::PACKAGENAME);
+    $statusCode = $this->runner->execute($argv, self::APPLICATION_NAME, $version);
+    return $statusCode;
+  }
+
 }
