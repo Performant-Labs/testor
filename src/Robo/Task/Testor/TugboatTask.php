@@ -39,7 +39,7 @@ abstract class TugboatTask extends TestorTask
 
       // If in the context of GitHub Actions, save PATH for further steps
       $githubPath = getenv('GITHUB_PATH');
-      if (!(bool) $githubPath) {
+      if ((bool) $githubPath) {
         file_put_contents($githubPath, getcwd() . "\n", FILE_APPEND);
       }
     }
