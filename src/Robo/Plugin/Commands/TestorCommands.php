@@ -182,10 +182,16 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface {
   /**
    * Create a new preview on Tugboat.
    *
+   * @param array $opts
+   * @option $base Specify which Preview should be used as the Base Preview.
+   * If there are any anchored Base Previews, those will be
+   * used by default. Specify the ID of another Preview to use
+   * it as the Base Preview, or set this to false to build a
+   * Preview without a Base Preview.
    * @return UnstructuredData Preview in Tugboat's format
    */
-  public function previewCreate(): UnstructuredData|Result {
-    $result = $this->taskTugboatPreviewCreate()->run();
+  public function previewCreate(array $opts = ['base' => null]): UnstructuredData|Result {
+    $result = $this->taskTugboatPreviewCreate($opts)->run();
     return isset($result['preview']) ? new UnstructuredData($result['preview']) : $result;
   }
 

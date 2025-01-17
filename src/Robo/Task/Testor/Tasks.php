@@ -54,8 +54,8 @@ namespace PL\Robo\Task\Testor {
       return $this->task(TugboatPreviewDeleteAll::class);
     }
 
-    protected function taskTugboatPreviewCreate(): \Robo\Collection\CollectionBuilder {
-      return $this->task(TugboatPreviewCreate::class);
+    protected function taskTugboatPreviewCreate(array $opts): \Robo\Collection\CollectionBuilder {
+      return $this->task(TugboatPreviewCreate::class, $opts);
     }
 
     protected function taskTugboatPreviewSet(string $preview): \Robo\Collection\CollectionBuilder {
