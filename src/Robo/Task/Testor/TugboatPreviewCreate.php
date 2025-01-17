@@ -4,6 +4,13 @@ namespace PL\Robo\Task\Testor;
 
 class TugboatPreviewCreate extends TugboatTask {
 
+  protected string|null $base;
+
+  public function __construct(array $opts) {
+    parent::__construct();
+    $this->base = $opts['base'];
+  }
+
   public function run() {
     if (!$this->initTugboat()) {
       return $this->fail();
@@ -21,7 +28,12 @@ class TugboatPreviewCreate extends TugboatTask {
     $label = "Branch:$githubBranch $runDate";
 
     $this->printTaskInfo("Creating preview ($label).");
-    $result = $this->exec("$this->tugboat create preview \"$githubBranch\" base=false repo=$this->repo label=\"$label\" output=json", $output);
+    $command = "$this->tugboat create preview \"$githubBranch\"";
+    if ($this->base) {
+      $command .= " base=$this->base";
+    }
+    $command .= " repo=$this->repo label=\"$label\" output=json";
+    $result = $this->exec($command, $output);
     if ($result->getExitCode() !== 0) {
       return $result;
     }
