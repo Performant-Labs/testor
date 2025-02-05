@@ -1,0 +1,13 @@
+pantheon:
+  site: 'performant-labs'
+s3:
+  config: '**DUMMY**'
+  bucket: 'snapshot'
+tugboat:
+  repo: '1reporepo1'
+
+# Export TEST_VAR1=value to test config var substitution
+test:
+  var1: ${TEST_VAR1}
+  var2: ${test.var1}
+

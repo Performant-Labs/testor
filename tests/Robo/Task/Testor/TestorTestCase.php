@@ -10,6 +10,7 @@ use Mockery\Adapter\Phpunit\MockeryTestCase;
 use Mockery\LegacyMockInterface;
 use Mockery\MockInterface;
 use PL\Robo\Common\StorageStrategy;
+use PL\Robo\Testor;
 use Robo\Collection\CollectionBuilder;
 use Robo\Robo;
 use Robo\Task\Base\Exec;
@@ -30,7 +31,7 @@ class TestorTestCase extends MockeryTestCase implements ContainerAwareInterface 
     $container = Robo::createDefaultContainer(null, new NullOutput());
 
     // Set up test dependencies.
-    $container->add('testorConfig', new \Consolidation\Config\Config(['pantheon' => ['site' => 'performant-labs'], 's3' => ['config' => '**DUMMY**', 'bucket' => 'snapshot'], 'tugboat' => ['repo' => '1reporepo1']]));
+    $container->add('testorConfig', Testor::createConfiguration(['.testor_test.yml']));
     $container->add('s3Client', $this->mockS3Client());
     $container->add('s3Bucket', 'snapshot');
     $container->add('storage', StorageStrategy::class);

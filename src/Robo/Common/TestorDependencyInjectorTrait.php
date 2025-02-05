@@ -9,7 +9,7 @@ use PL\Robo\Contract\TestorConfigAwareInterface;
 use PL\Robo\Testor;
 
 trait TestorDependencyInjectorTrait {
-  public function injectTestorDependencies() {
+  protected function injectTestorDependencies() {
     // We have BaseTask->injectDependencies() which passes dependencies
     // created by Robo like a waterfall from parent to child.
     // Since it's not clear how to add dependencies specific to the
