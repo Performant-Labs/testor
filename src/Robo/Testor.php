@@ -2,6 +2,7 @@
 
 namespace PL\Robo;
 
+use Consolidation\Config\Loader\ConfigProcessor;
 use PL\Robo\Common\StorageStrategy;
 use Psr\Container\ContainerInterface;
 use Robo\Robo;
@@ -38,7 +39,7 @@ class Testor {
     // its default arguments configuration, while TestorConig contains
     // common configuration for the domain which Testor is used for.)
     // TestorConfig will be initialized once and for all.
-    $testorConfig = Robo::createConfiguration(['.testor.yml', '.testor_secret.yml']);
+    $testorConfig = self::createConfiguration(['.testor.yml', '.testor_secret.yml']);
     Robo::addShared($container, 'testorConfig', $testorConfig);
 
     // Register Testor-specific services.
@@ -73,6 +74,21 @@ class Testor {
 
   public static function getStorage() {
     return Robo::getContainer()->get('storage');
+  }
+
+  /**
+   * @param $paths
+   * @return \Consolidation\Config\ConfigInterface|\Robo\Config\Config
+   */
+  public static function createConfiguration($paths): \Robo\Config\Config|\Consolidation\Config\ConfigInterface {
+    $config = Robo::createConfiguration($paths);
+
+    // Merge all env variables to achieve var substitution.
+    $processor = new ConfigProcessor();
+    $processor->add($config->export());
+    $processor->add(getenv());
+    $config->import($processor->export());
+    return $config;
   }
 
 }
