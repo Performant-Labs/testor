@@ -18,7 +18,7 @@ class SnapshotGet extends TestorTask
   function __construct(array $args) {
     parent::__construct();
     $this->name = $args['name'];
-    $this->filename = $args['output'];
+    $this->filename = $args['output'] ?? null;
     $this->element = $args['element'];
   }
 
@@ -37,7 +37,7 @@ class SnapshotGet extends TestorTask
     $this->filename = $this->filename ?? end($array);
     $this->storage->get($name, $this->filename);
     $this->message = "Downloaded $name => $this->filename";
-    return $this->pass();
+    return $this->pass(['filename' => $this->filename]);
   }
 
 }

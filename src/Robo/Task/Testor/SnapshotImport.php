@@ -3,7 +3,7 @@
 namespace PL\Robo\Task\Testor;
 
 class SnapshotImport extends TestorTask {
-  protected string $filename;
+  protected string|null $filename;
   /**
    * @var bool
    * Same as in {@link SnapshotCreate}
@@ -12,8 +12,19 @@ class SnapshotImport extends TestorTask {
 
   public function __construct(array $opts) {
     parent::__construct();
-    $this->filename = $opts['filename'];
+    $this->filename = $opts['filename'] ?? null;
     $this->gzip = $opts['gzip'] ?? true;
+  }
+
+  /**
+   * Configure filename.
+   *
+   * @param string $filename
+   * @return void
+   */
+  public function filename(string $filename): void {
+    // Cut off extension if any.
+    $this->filename = preg_replace('/(\.tar\.gz|\.sql)$/', '', $filename);
   }
 
   public function run(): \Robo\Result {

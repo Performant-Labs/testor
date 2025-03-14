@@ -15,7 +15,7 @@ class TugboatPreviewDeleteAll extends TugboatTask {
 
     $previews = json_decode($output, true);
     foreach ($previews as $preview) {
-      if ((bool) $preview['anchor']) {
+      if ((bool) ($preview['anchor'] ?? null)) {
         $this->printTaskInfo("Skip deleting anchor preview {$preview['preview']}");
         continue;
       }

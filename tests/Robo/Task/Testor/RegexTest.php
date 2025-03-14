@@ -11,7 +11,7 @@ class RegexTest extends TestCase {
 
     assertEquals('file', $m[1]);
     assertEquals('.sql', $m[2]);
-    assertEquals('', $m[3]);
+    assertEquals('', $m[3] ?? '');
   }
 
 }
