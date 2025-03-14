@@ -3,11 +3,26 @@
 namespace PL\Robo\Task\Testor;
 
 class TugboatPreviewSet extends TugboatTask {
-  protected string $preview;
+  protected string|null $preview;
 
-  public function __construct(string $preview) {
+  public function __construct(string|null $preview = null) {
     parent::__construct();
     $this->preview = $preview;
+  }
+
+  /**
+   * Configure preview to set.
+   *
+   * @param string|array $preview Preview ID or preview JSON.
+   * @return void
+   */
+  public function preview(string|array $preview): void {
+    if (is_array($preview)) {
+      $this->preview = $preview['preview'];
+    }
+    else {
+      $this->preview = $preview;
+    }
   }
 
   public function run(): \Robo\Result {

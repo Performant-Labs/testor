@@ -50,9 +50,10 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface {
    * as a folder)
    * @option $do-not-sanitize Skip database sanitize command
    * @option $element Element to backup (code, database, files)
+   * @option $put Put (upload) a snapshot to the storage after creation
    *
    */
-  public function snapshotCreate(array $opts = ['env' => '@self', 'name' => '', 'element' => 'database', 'do-not-sanitize' => false]): Result {
+  public function snapshotCreate(array $opts = ['env' => '@self', 'name' => '', 'element' => 'database', 'do-not-sanitize' => false, 'put' => false]): Result {
     $task = $this->collectionBuilder();
 
     $env = $opts['env'];
@@ -60,7 +61,7 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface {
     $dosanitize = $this->testorConfig->has('sanitize.command') && !$opts['do-not-sanitize'];
 
     // Normalize element.
-    list($element, $opts) = $this->normalizeElement($opts);
+    $element = $this->normalizeElement($opts);
 
     // Make a target file name (without extension, it can be .sql.gz, tar.gz later than).
     $filename = $this->getSnapshotFilename($ispantheon ? $env : 'local', $element);
@@ -72,10 +73,14 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface {
         $task->taskSnapshotCreate([...$opts, 'ispantheon' => true, 'gzip' => !$dosanitize]);
 
         if (!$dosanitize) {
-          return $task
+          $task
             // Sanitize here to show "Skip..." message.
-            ->taskDbSanitize($opts)
-            ->taskSnapshotPut($opts)
+            ->taskDbSanitize($opts);
+          if ($opts['put']) {
+            $task
+              ->taskSnapshotPut($opts);
+          }
+          return $task
             ->run();
         }
 
@@ -95,14 +100,19 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface {
       $task->taskSnapshotCreate([...$opts, 'ispantheon' => false]);
 
       // Put the snapshot to the storage.
-      $task->taskSnapshotPut($opts);
+      if ($opts['put']) {
+        $task->taskSnapshotPut($opts);
+      }
     }
     else {
       // Handle files and code (should be enough to just copy via SFTP...)
       // But not clear how to gzip them over SFTP.
       // So fallback to old good backups.
-      $task->taskSnapshotViaBackup($opts)
-        ->taskSnapshotPut($opts);
+      $task->taskSnapshotViaBackup($opts);
+      if ($opts['put']) {
+        $task
+          ->taskSnapshotPut($opts);
+      }
     }
 
     return $task->run();
@@ -123,16 +133,16 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface {
   public function snapshotPut(string $file, array $opts = ['name' => '', 'element' => 'database']) {
     $task = $this->collectionBuilder();
 
-    list($element, $opts) = $this->normalizeElement($opts);
+    $element = $this->normalizeElement($opts);
     $filename = $this->getSnapshotFilename('local', $element);
     $opts['filename'] = $filename;
 
     preg_match('/(.*?)(\.tar|\.sql)?(\.gz)?$/', $file, $m);
     $localfilename = $m[1];
     $opts['localfilename'] = $localfilename;
-    if ($m[3]) {
+    if ($m[3] ?? '') {
     }
-    elseif ($m[2] === '.sql') {
+    elseif (($m[2] ?? '') === '.sql') {
       $task->taskArchivePack($localfilename, $file);
     }
     else {
@@ -164,10 +174,18 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface {
    * this prefix will be gotten.
    * @option $output Output file. If not specified, original file name will be kept.
    * @option $element Element to get backups for (code, database, files)
+   * @option $import Import database after download
    * @return Result
    */
-  public function snapshotGet(array $opts = ['name' => '', 'output|o' => null, 'element' => 'database']): Result {
-    return $this->taskSnapshotGet($opts)->run();
+  public function snapshotGet(array $opts = ['name' => '', 'output|o' => null, 'element' => 'database', 'import' => false]): Result {
+    $task = $this->collectionBuilder()->taskSnapshotGet($opts);
+    if ($opts['import']) {
+      $task
+        ->storeState('filename', 'filename')
+        ->taskSnapshotImport($opts)
+        ->deferTaskConfiguration('filename', 'filename');
+    }
+    return $task->run();
   }
 
   /**
@@ -188,10 +206,17 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface {
    * used by default. Specify the ID of another Preview to use
    * it as the Base Preview, or set this to false to build a
    * Preview without a Base Preview.
+   * @option $set Change ATK configs to run test against a new preview.
    * @return UnstructuredData Preview in Tugboat's format
    */
-  public function previewCreate(array $opts = ['base' => null]): UnstructuredData|Result {
-    $result = $this->taskTugboatPreviewCreate($opts)->run();
+  public function previewCreate(array $opts = ['base' => null, 'set' => false]): UnstructuredData|Result {
+    $task = $this->collectionBuilder()->taskTugboatPreviewCreate($opts);
+    if ($opts['set']) {
+      $task->storeState('preview', 'preview')
+        ->taskTugboatPreviewSet()
+        ->deferTaskConfiguration('preview', 'preview');
+    }
+    $result = $task->run();
     return isset($result['preview']) ? new UnstructuredData($result['preview']) : $result;
   }
 
@@ -207,9 +232,9 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface {
 
   /**
    * @param array $opts
-   * @return array
+   * @return string
    */
-  protected function normalizeElement(array $opts): array {
+  protected function normalizeElement(array &$opts): string {
     $element = $opts['element'];
     $element = match ($element) {
       'database', 'db' => 'database',
@@ -217,7 +242,7 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface {
       'files' => 'files',
     };
     $opts['element'] = $element;
-    return array($element, $opts);
+    return $element;
   }
 
   /**

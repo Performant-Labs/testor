@@ -89,13 +89,14 @@ abstract class TestorTask extends \Robo\Task\BaseTask implements \Robo\Contract\
    * return $this->pass();
    * ```
    *
+   * @param array $data
    * @return Result
    */
-  public function pass(): Result {
+  public function pass(array $data = []): Result {
     // Print message, because by default Robo doesn't print successful
     // messages, and empty output may confuse user.
     $this->printTaskSuccess($this->message ?? 'passed');
-    return new Result($this, 0, $this->message);
+    return new Result($this, 0, $this->message, $data);
   }
 
   protected function checkRclone(): bool {

@@ -16,7 +16,7 @@ class SnapshotPut extends TestorTask implements StorageAwareInterface {
   function __construct(array $opts) {
     parent::__construct();
     $this->name = $opts['name'];
-    if ($opts['localfilename']) {
+    if ($opts['localfilename'] ?? null) {
       $localfilename = $opts['localfilename'];
     }
     else {
