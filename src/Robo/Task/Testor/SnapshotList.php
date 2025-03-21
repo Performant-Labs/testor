@@ -13,12 +13,12 @@ class SnapshotList extends TestorTask
   use TestorConfigAwareTrait;
 
   protected string $name;
-  protected string $element;
+  protected string|null $element;
 
   function __construct(array $args) {
     parent::__construct();
     $this->name = $args['name'];
-    $this->element = $args['element'];
+    $this->element = $args['element'] ?? null;
   }
 
   public function run(): \Robo\Result {
@@ -28,7 +28,7 @@ class SnapshotList extends TestorTask
       $this->printTaskWarning("There are no snapshots by name \"$this->name\"");
     }
     // Filter out elements
-    $table = array_values(array_filter($table, fn($value) => str_contains($value['Name'], $this->element) && str_contains($value['Name'], $this->testorConfig->get('pantheon.site', ''))));
+    $table = array_values(array_filter($table, fn($value) => str_contains($value['Name'], $this->element ?? '') && str_contains($value['Name'], $this->testorConfig->get('pantheon.site', ''))));
     return new \Robo\Result($this, 0, '', array('table' => $table));
   }
 

@@ -36,4 +36,12 @@ interface StorageInterface {
    */
   function get(string $source, string $destination): void;
 
+  /**
+   * Delete all files with given prefix.
+   *
+   * @param array $names Names os the objects to delete.
+   * @return void
+   */
+  function delete(array $names): void;
+
 }
