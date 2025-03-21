@@ -54,16 +54,16 @@ namespace PL\Robo\Task\Testor {
       return $this->task(SnapshotGet::class, $opts);
     }
 
-    protected function taskTugboatPreviewDeleteAll(): \Robo\Collection\CollectionBuilder {
-      return $this->task(TugboatPreviewDeleteAll::class);
-    }
-
     protected function taskTugboatPreviewCreate(array $opts): \Robo\Collection\CollectionBuilder {
       return $this->task(TugboatPreviewCreate::class, $opts);
     }
 
     protected function taskTugboatPreviewSet(string $preview = null): \Robo\Collection\CollectionBuilder {
       return $this->task(TugboatPreviewSet::class, $preview);
+    }
+
+    protected function taskTugboatPreviewDelete(string $preview): \Robo\Collection\CollectionBuilder {
+      return $this->task(TugboatPreviewDelete::class, $preview);
     }
 
   }

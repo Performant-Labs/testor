@@ -214,15 +214,6 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface {
   }
 
   /**
-   * Delete all previews on Tugboat within project's repo.
-   *
-   * @return Result
-   */
-  public function previewDeleteAll(): Result {
-    return $this->taskTugboatPreviewDeleteAll()->run();
-  }
-
-  /**
    * Create a new preview on Tugboat.
    *
    * @param array $opts
@@ -253,6 +244,15 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface {
    */
   public function previewSet(string $preview): Result {
     return $this->taskTugboatPreviewSet($preview)->run();
+  }
+
+  /**
+   * Delete one or all previews within project's repo.
+   *
+   * @param  string $preview Preview ID, or "all" to delete all.
+   */
+  public function previewDelete(string $preview): Result {
+    return $this->taskTugboatPreviewDelete($preview)->run();
   }
 
   /**
