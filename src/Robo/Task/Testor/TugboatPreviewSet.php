@@ -4,10 +4,18 @@ namespace PL\Robo\Task\Testor;
 
 class TugboatPreviewSet extends TugboatTask {
   protected string|null $preview;
+  protected string $framework;
 
   public function __construct(string|null $preview = null) {
     parent::__construct();
     $this->preview = $preview;
+
+    // Check if we have playwright or cypress config.
+    $framework = 'playwright';
+    if (!file_exists('playwright.config.js') && file_exists('cypress.config.js')) {
+      $framework = 'cypress';
+    }
+    $this->framework = $framework;
   }
 
   /**
@@ -54,12 +62,12 @@ class TugboatPreviewSet extends TugboatTask {
       $url = $url . '/';
     }
 
-    // Parse playwright.config.js to change baseURL.
+    // Parse [playwright|cypress].config.js to change baseURL.
     // While we can use `peast` or some other sophisticated
     // libs here. Let keep it simple and use regexp for now.
-    $config = file_get_contents('playwright.config.js');
+    $config = file_get_contents("{$this->framework}.config.js");
     if (!$config) {
-      $this->message = 'playwright.config.js is missing';
+      $this->message = "{$this->framework}.config.js is missing";
       return $this->fail();
     }
     else {
@@ -67,20 +75,20 @@ class TugboatPreviewSet extends TugboatTask {
         return $this->fail();
       }
 
-      file_put_contents('playwright.config.js', $config);
+      file_put_contents("{$this->framework}.config.js", $config);
     }
 
-    // Parse and change playwright.atk.config.js
-    $config = file_get_contents('playwright.atk.config.js');
+    // Parse and change [playwright|cypress].atk.config.js
+    $config = file_get_contents("{$this->framework}.atk.config.js");
     if (!$config) {
-      $this->printTaskError('playwright.atk.config.js is missing');
+      $this->printTaskError("{$this->framework}.atk.config.js is missing");
     }
     else {
       if (!($config = $this->changeAtkConfig($config, ['service' => $service, 'isTarget' => 'true']))) {
         return $this->fail();
       }
 
-      file_put_contents('playwright.atk.config.js', $config);
+      file_put_contents("$this->framework.atk.config.js", $config);
     }
 
     // Show success message.
@@ -89,7 +97,7 @@ class TugboatPreviewSet extends TugboatTask {
   }
 
   /**
-   * Change playwright.config.js.
+   * Change [playwright|cypress].config.js.
    *
    * @param string $config Initial config as a string.
    * @param array $repl values to replace. Should contain `baseURL`
@@ -97,13 +105,27 @@ class TugboatPreviewSet extends TugboatTask {
    */
   public function changeConfig(string $config, array $repl): string {
     // Moved to a method to allow test in isolation.
-    $config = preg_replace(
-      "~(//[[:space:]]*)?baseURL: '.*'~",
-      "baseURL: '{$repl['baseURL']}'",
-      $config,
-      1, $count);
+    // Both cypress and playwright config must have single-quoted strings.
+    if ($this->framework === 'playwright') {
+      $config = preg_replace(
+        "~(//[[:space:]]*)?baseURL: '.*'~",
+        "baseURL: '{$repl['baseURL']}'",
+        $config,
+        1, $count);
+    }
+    elseif ($this->framework === 'cypress') {
+      $config = preg_replace(
+        "~(//[[:space:]]*)?baseUrl: '.*'~",
+        "baseUrl: '{$repl['baseURL']}'",
+        $config,
+        1, $count
+      );
+    } else {
+      $this->message = "Framework {$this->framework} is not operable by Testor";
+      return false;
+    }
     if (!$count) {
-      $this->message = '`playwright.contain.js` hasn\'t been changed: baseURL not set';
+      $this->message = "`{$this->framework}.config.js` hasn't been changed: baseURL not set";
       return false;
     }
     return $config;
@@ -120,6 +142,10 @@ class TugboatPreviewSet extends TugboatTask {
     // Since PHP is missing sed (as quick search reveal, maybe I'm wrong),
     // let read a file line by line and change a line if
     // it is in "tugboat" block.
+
+    // By now, config has single-quoted strings.
+    // But keep code for double-quoted legacy strings as well.
+
     $lines = explode("\n", $config);
     $config = "";
     $f = false;
@@ -133,6 +159,8 @@ class TugboatPreviewSet extends TugboatTask {
         $isTargetIsSet |= $count;
         $line = preg_replace('~service: "[^"]*"~', "service: \"{$repl['service']}\"", $line, 1, $count);
         $serviceIsSet |= $count;
+        $line = preg_replace('~service: \'[^\']*\'~', "service: '{$repl['service']}'", $line, 1, $count);
+        $serviceIsSet |= $count;
       }
       else {
         $line = preg_replace('~isTarget: true~', 'isTarget: false', $line);
@@ -140,11 +168,11 @@ class TugboatPreviewSet extends TugboatTask {
       $config .= $line . "\n";
     }
     if (!$isTargetIsSet) {
-      $this->message = '`playwright.atk.config.js` hasn\'t been changed: tugboat.isTarget not set';
+      $this->message = "`{$this->framework}.atk.config.js` hasn't been changed: tugboat.isTarget not set";
       return false;
     }
     if (!$serviceIsSet) {
-      $this->message = '`playwright.atk.config.js` hasn\'t been changed: tugboat.service not set';
+      $this->message = "`{$this->framework}.atk.config.js` hasn't been changed: tugboat.service not set";
       return false;
     }
     return $config;

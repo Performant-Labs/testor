@@ -21,9 +21,11 @@ class TugboatPreviewSetTest extends TestorTestCase {
       ->willReturn('/usr/bin/tugboat');
 
     $mockFileExists = $this->mockBuiltIn('file_exists');
-    $mockFileExists->expects(self::once())
-      ->with(getenv('HOME') . '/.tugboat.yml')
-      ->willReturn(true);
+    $mockFileExists->expects(self::exactly(2))
+      ->withReturnMap([
+        [getenv('HOME') . '/.tugboat.yml', true],
+        ['playwright.config.js', true]
+    ]);
 
     $mockFileGetContents = $this->mockBuiltIn('file_get_contents');
     $mockFileGetContents->expects(self::exactly(2))
@@ -228,6 +230,119 @@ baseURL: 'https://tugboatqa.com/test/',
                     service: \"11php12345\"
                   }
                 }\n"
+      ]
+    ];
+  }
+
+  /**
+   * @param $initialConfig string initial content of cypress.config.js
+   * @param $initialAtkConfig string expected content of cypress.config.js after modification
+   * @param $expectedConfig string initial content of cypress.atk.config.js
+   * @param $expectedAtkConfig string expected content of cypress.atk.config.js after modification
+   * @dataProvider datasetTugboatPreviewSetForCypress
+   * @return void
+   */
+  public function testTugboatPreviewSetForCypress($initialConfig, $initialAtkConfig, $expectedConfig, $expectedAtkConfig) {
+    $mockShellExec = $this->mockBuiltIn('shell_exec');
+    $mockShellExec->expects(self::once())
+      ->with('which tugboat')
+      ->willReturn('/usr/bin/tugboat');
+
+    $mockFileExists = $this->mockBuiltIn('file_exists');
+    $mockFileExists->expects(self::exactly(3))
+      ->withReturnMap([
+        [getenv('HOME') . '/.tugboat.yml', true],
+        ['playwright.config.js', false],
+        ['cypress.config.js', true],
+    ]);
+
+    $mockFileGetContents = $this->mockBuiltIn('file_get_contents');
+    $mockFileGetContents->expects(self::exactly(2))
+      ->withReturnMap([
+        ['cypress.config.js', $initialConfig],
+        ['cypress.atk.config.js', $initialAtkConfig],
+      ]);
+
+    $mockFilePutContents = $this->mockBuiltIn('file_put_contents');
+    $mockFilePutContents->expects(self::exactly(2))
+      ->withReturnMap([
+        ['cypress.config.js', $expectedConfig, strlen($expectedConfig)],
+        ['cypress.atk.config.js', $expectedAtkConfig, strlen($expectedAtkConfig)]
+      ]);
+
+    /** @var TugboatPreviewSet $tugboatPreviewSet */
+    $tugboatPreviewSet = $this->taskTugboatPreviewSet('12prepre21');
+
+    $mockBuilder = $this->mockCollectionBuilder();
+    $previewJson = '[{"id":"11mysql123","name":"mysql","service":"11mysql123","urls":[]},{"id":"11php12345","name":"php","service":"11php12345","urls":["https://tugboatqa.com/test"]}]';
+    $mockBuilder->shouldReceive('taskExec')
+      ->once()
+      ->with('tugboat ls services preview=12prepre21 --json')
+      ->andReturn($this->mockTaskExec($tugboatPreviewSet, 0, $previewJson));
+    $tugboatPreviewSet->setBuilder($mockBuilder);
+    $result = $tugboatPreviewSet->run();
+    self::assertEquals(0, $result->getExitCode());
+  }
+
+  public static function datasetTugboatPreviewSetForCypress(): array {
+    return [
+      [
+        // cypress.config.js
+        "const { defineConfig } = require(\"cypress\");
+
+module.exports = defineConfig({
+  e2e: {
+    baseUrl: 'http://automated-testing-kit-d10:8888/',
+    setupNodeEvents(on, config) {
+    },
+  },
+});
+",
+        // cypress.atk.config.js
+        "/*
+* Automated Testing Kit configuration.
+*/
+module.exports = {
+  testDir: 'cypress/e2e',
+  pantheon: {
+    isTarget: true,
+    site: 'ucop-procurement',
+    environment: 'atk',
+  },
+  tugboat: {
+    isTarget: false,
+    service: '<id>'
+  },
+}
+",
+        // cypress.config.js **after**
+        "const { defineConfig } = require(\"cypress\");
+
+module.exports = defineConfig({
+  e2e: {
+    baseUrl: 'https://tugboatqa.com/test/',
+    setupNodeEvents(on, config) {
+    },
+  },
+});
+",
+        // cypress.atk.config.js **after**
+        "/*
+* Automated Testing Kit configuration.
+*/
+module.exports = {
+  testDir: 'cypress/e2e',
+  pantheon: {
+    isTarget: false,
+    site: 'ucop-procurement',
+    environment: 'atk',
+  },
+  tugboat: {
+    isTarget: true,
+    service: '11php12345'
+  },
+}\n
+",
       ]
     ];
   }
