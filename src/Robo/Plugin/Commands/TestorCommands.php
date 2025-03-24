@@ -11,6 +11,7 @@ use PL\Robo\Common\TestorConfigAwareTrait;
 use PL\Robo\Contract\TestorConfigAwareInterface;
 use PL\Robo\Task\Testor\Tasks;
 use Robo\Result;
+use Robo\Symfony\ConsoleIO;
 
 class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface {
   use Tasks;
@@ -53,7 +54,7 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface {
    * @option $put Put (upload) a snapshot to the storage after creation
    *
    */
-  public function snapshotCreate(array $opts = ['env' => '@self', 'name' => '', 'element' => 'database', 'do-not-sanitize' => false, 'put' => false]): Result {
+  public function snapshotCreate(array $opts = ['env' => '@self', 'name' => 'default', 'element' => 'database', 'do-not-sanitize' => false, 'put' => false]): Result {
     $task = $this->collectionBuilder();
 
     $env = $opts['env'];
@@ -130,7 +131,7 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface {
    * consistent with the content of the file!
    * @return Result
    */
-  public function snapshotPut(string $file, array $opts = ['name' => '', 'element' => 'database']) {
+  public function snapshotPut(string $file, array $opts = ['name' => 'default', 'element' => 'database']) {
     $task = $this->collectionBuilder();
 
     $element = $this->normalizeElement($opts);
@@ -189,12 +190,27 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface {
   }
 
   /**
-   * Delete all previews on Tugboat within project's repo.
+   * Delete snapshot(s) from the storage.
    *
-   * @return Result
+   * @option $name Name or prefix of snapshot(s)
+   * @option $yes Confirm deletion
+   *
    */
-  public function previewDeleteAll(): Result {
-    return $this->taskTugboatPreviewDeleteAll()->run();
+  public function snapshotDelete(ConsoleIO $io, array $opts = ['name' => '', 'yes|y' => false]): \Robo\ResultData|Result {
+    $result = $this->taskSnapshotList($opts)->run();
+
+    if (!$result->wasSuccessful()) {
+      return $result;
+    }
+
+    $table = $result['table'];
+    $count = count($table);
+    if ($opts['yes'] || $io->confirm("Do you want to delete $count objects")) {
+      $names = array_map(fn($item) => $item['Name'], $table);
+      return $this->taskSnapshotDelete(...$names)->run();
+    }
+
+    return Result::cancelled();
   }
 
   /**
@@ -228,6 +244,15 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface {
    */
   public function previewSet(string $preview): Result {
     return $this->taskTugboatPreviewSet($preview)->run();
+  }
+
+  /**
+   * Delete one or all previews within project's repo.
+   *
+   * @param  string $preview Preview ID, or "all" to delete all.
+   */
+  public function previewDelete(string $preview): Result {
+    return $this->taskTugboatPreviewDelete($preview)->run();
   }
 
   /**

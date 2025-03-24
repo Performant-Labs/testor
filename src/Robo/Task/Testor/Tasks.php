@@ -46,12 +46,12 @@ namespace PL\Robo\Task\Testor {
       return $this->task(SnapshotList::class, $opts);
     }
 
-    protected function taskSnapshotGet(array $opts): \Robo\Collection\CollectionBuilder {
-      return $this->task(SnapshotGet::class, $opts);
+    protected function taskSnapshotDelete(string... $names): \Robo\Collection\CollectionBuilder {
+      return $this->task(SnapshotDelete::class, ...$names);
     }
 
-    protected function taskTugboatPreviewDeleteAll(): \Robo\Collection\CollectionBuilder {
-      return $this->task(TugboatPreviewDeleteAll::class);
+    protected function taskSnapshotGet(array $opts): \Robo\Collection\CollectionBuilder {
+      return $this->task(SnapshotGet::class, $opts);
     }
 
     protected function taskTugboatPreviewCreate(array $opts): \Robo\Collection\CollectionBuilder {
@@ -60,6 +60,10 @@ namespace PL\Robo\Task\Testor {
 
     protected function taskTugboatPreviewSet(string $preview = null): \Robo\Collection\CollectionBuilder {
       return $this->task(TugboatPreviewSet::class, $preview);
+    }
+
+    protected function taskTugboatPreviewDelete(string $preview): \Robo\Collection\CollectionBuilder {
+      return $this->task(TugboatPreviewDelete::class, $preview);
     }
 
   }

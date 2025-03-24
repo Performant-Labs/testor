@@ -69,6 +69,14 @@ class StorageSFTP implements StorageInterface, TestorConfigAwareInterface {
     }
   }
 
+  function delete(array $names): void {
+    foreach ($names as $name) {
+      if (!$this->sftp->delete("$this->root/$name")) {
+        throw new \Exception("delete($this->root/$name) failed!");
+      }
+    }
+  }
+
   /**
    * @param array $filelist recursive file array such as
    * array('subfolder' => array('file1' => obj1, 'file2' => obj2), 'file3' => obj3)

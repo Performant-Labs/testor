@@ -56,4 +56,8 @@ class StorageStrategy implements StorageInterface, TestorConfigAwareInterface {
     $this->storage->get($source, $destination);
   }
 
+  function delete(array $names): void {
+    $this->storage->delete($names);
+  }
+
 }

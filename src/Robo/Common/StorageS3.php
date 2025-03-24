@@ -16,19 +16,19 @@ class StorageS3 implements StorageInterface, S3ClientAwareInterface, S3BucketAwa
   }
 
   function put(string $source, string $destination): void {
-    $this->s3Client->putObject(array(
+    $this->s3Client->putObject([
       'Bucket' => $this->s3Bucket,
       'Key' => $destination,
       'SourceFile' => $source
-    ));
+    ]);
   }
 
   function list(string $prefix): array {
-    $result = $this->s3Client->listObjects(array(
+    $result = $this->s3Client->listObjects([
       'Bucket' => $this->s3Bucket,
       'Delimiter' => ':',
       'Prefix' => $prefix
-    ));
+    ]);
 
     // Format result in
     // | Name    | Date      | Size   |
@@ -37,7 +37,7 @@ class StorageS3 implements StorageInterface, S3ClientAwareInterface, S3BucketAwa
       return [];
     }
     $table = array_map(
-      fn($item) => array('Name' => $item['Key'], 'Date' => $item['LastModified'], 'Size' => $item['Size']),
+      fn($item) => ['Name' => $item['Key'], 'Date' => $item['LastModified'], 'Size' => $item['Size']],
       $result['Contents']
     );
     usort($table, fn($a, $b) => $b['Date']->getTimestamp() - $a['Date']->getTimestamp());
@@ -45,11 +45,20 @@ class StorageS3 implements StorageInterface, S3ClientAwareInterface, S3BucketAwa
   }
 
   function get(string $source, string $destination): void {
-    $this->s3Client->getObject(array(
+    $this->s3Client->getObject([
       'Bucket' => $this->s3Bucket,
       'Key' => $source,
       'SaveAs' => $destination
-    ));
+    ]);
+  }
+
+  function delete(array $names): void {
+    $this->s3Client->deleteObjects([
+      'Bucket' => $this->s3Bucket,
+      'Delete' => [
+        'Objects' => array_map(fn($name) => ['Key' => $name], $names),
+      ],
+    ]);
   }
 
 }
