@@ -66,5 +66,10 @@ namespace PL\Robo\Task\Testor {
       return $this->task(TugboatPreviewDelete::class, $preview);
     }
 
+    protected function taskEcho(\Robo\Result $result): \Robo\Collection\CollectionBuilder
+    {
+      return $this->task(Echo_::class, $result);
+    }
+
   }
 }
