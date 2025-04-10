@@ -32,10 +32,11 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface {
    * @return Result
    */
   public function selfInit(): Result {
-    return $this->collectionBuilder()
-      ->taskTestorConfigInit()
-      ->taskTestorCustomCommand()
-      ->run();
+    $result = $this->collectionBuilder()
+        ->taskTestorConfigInit()
+        ->taskTestorCustomCommand()
+        ->run();
+    return $this->echo($result);
   }
 
   /**
@@ -81,8 +82,9 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface {
             $task
               ->taskSnapshotPut($opts);
           }
-          return $task
-            ->run();
+          $result = $task
+              ->run();
+          return $this->echo($result);
         }
 
         // Import snapshot to the local database
@@ -116,7 +118,8 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface {
       }
     }
 
-    return $task->run();
+    $result = $task->run();
+    return $this->echo($result);
   }
 
   /**
@@ -150,7 +153,8 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface {
       return Result::error($task, "file must be .gz | .sql");
     }
 
-    return $task->taskSnapshotPut($opts)->run();
+    $result = $task->taskSnapshotPut($opts)->run();
+    return $this->echo($result);
   }
 
   /** List snapshots from the storage.
@@ -186,7 +190,8 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface {
         ->taskSnapshotImport($opts)
         ->deferTaskConfiguration('filename', 'filename');
     }
-    return $task->run();
+    $result = $task->run();
+    return $this->echo($result);
   }
 
   /**
@@ -233,7 +238,7 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface {
         ->deferTaskConfiguration('preview', 'preview');
     }
     $result = $task->run();
-    return isset($result['preview']) ? new UnstructuredData($result['preview']) : $result;
+    return isset($result['preview']) ? new UnstructuredData($result['preview']) : $this->echo($result);
   }
 
   /**
@@ -282,6 +287,41 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface {
       date_format(new \DateTime(), 'Y-m-d\\TH-m-s_T'),
       $element
     ]);
+  }
+
+  /**
+   * A workaround for idiosyncrasy of Robo framework that it chops
+   * any error thrown by tasks, if they are executed via collectionBuilder.
+   *
+   * An example to reproduce this:
+   * ```
+   *
+   * public function throwExc()
+   * {
+   *  //      return $this->taskSnapshotPut(['name' => 'dummy', 'filename' => 'dummy'])->run();
+   *      return $this->collectionBuilder()->taskSnapshotPut(['name' => 'dummy', 'filename' => 'dummy'])->run();
+   * }
+   * ```
+   *
+   * If taskSnapshotPut throw an error, the second command will silently fail,
+   * only showing error code 1.
+   *
+   * To fix this, use following code:
+   * ```
+   *
+   * public function throwExc()
+   * {
+   * //      return $this->taskSnapshotPut(['name' => 'dummy', 'filename' => 'dummy'])->run();
+   *    $result = $this->collectionBuilder()->taskSnapshotPut(['name' => 'dummy', 'filename' => 'dummy'])->run();
+   *    return $this->echo($result);
+   * }
+   *
+   * @param Result $result
+   * @return Result
+   */
+  protected function echo(\Robo\Result $result): Result
+  {
+    return $this->taskEcho($result)->run();
   }
 
 }
