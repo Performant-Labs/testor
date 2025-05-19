@@ -1,0 +1,28 @@
+#!/bin/bash
+
+## Description: Run after database import to sanitize the database
+## Usage: Automatically executed after ddev import-db
+## Example: "ddev import-db --src=mydb.sql.gz"
+
+# Check if sanitization should be skipped
+if [ "${TESTOR_SKIP_SANITIZE}" = "true" ]; then
+    echo "Skipping database sanitization (TESTOR_SKIP_SANITIZE=true)"
+    exit 0
+fi
+
+# Ensure we're in the Drupal docroot
+cd /var/www/html/src
+
+# Run the sanitization command
+echo "Starting post-import database sanitization..."
+drush sql:sanitize --yes
+
+# Check if the command was successful
+if [ $? -eq 0 ]; then
+    echo "Post-import database sanitization completed successfully."
+else
+    echo "Post-import database sanitization failed. Check the error messages above."
+    exit 1
+fi
+
+exit 0

@@ -1,3 +1,11 @@
+Testor 1.9.0, 2025-05-19
+------------------------
+Changes since 1.4.0:
+- Added DDEV integration with MariaDB for database sanitization.
+- Created custom DDEV commands for database sanitization workflow.
+- Added automatic sanitization after database import.
+- Added pull-and-sanitize command to streamline workflow.
+
 Testor 1.4.0, 2024-??
 ------------------------
 Changes since 1.3.0:

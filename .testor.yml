@@ -1,0 +1,33 @@
+# Add this config to the version control.
+pantheon:
+  site: '[your Pantheon site name]'
+
+# Sanitization configuration
+sanitize:
+  # Using DDEV's Drush command to ensure it runs in the container with MariaDB access
+  command: 'drush sql:sanitize --yes'
+
+# DDEV-specific settings
+ddev:
+  # Set to true to indicate we're using DDEV environment
+  enabled: true
+  # Database connection is automatically handled by DDEV environment variables
+
+# Storage configuration
+storage: '[s3|sftp]'
+s3:
+  config:
+    version: 'latest'
+    region: ''
+    endpoint: '[cluster URL]'
+    credentials:
+      key: '[access key]'
+      secret: '${s3_secret}'
+  bucket: '[bucket name]'
+sftp:
+  host: '[host]'
+  user: 'sftpuser'
+  key: '/path/to/private/key'
+  # if key is set, it's password to the key, otherwise password to the server
+  password: ''
+  root: 'sftp/upload'
