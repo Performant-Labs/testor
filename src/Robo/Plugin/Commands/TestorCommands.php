@@ -2,13 +2,15 @@
 
 namespace PL\Robo\Plugin\Commands;
 
+use Consolidation\AnnotatedCommand\CommandData;
 use Consolidation\OutputFormatters\StructuredData\RowsOfFields;
 use Consolidation\OutputFormatters\StructuredData\UnstructuredListData;
-use PL\Robo\Common\TestorDependencyInjectorTrait;
-use PL\Robo\DO\Snapshot;
 use PL\Robo\Common\TestorConfigAwareTrait;
+use PL\Robo\Common\TestorDependencyInjectorTrait;
 use PL\Robo\Contract\TestorConfigAwareInterface;
+use PL\Robo\DO\Snapshot;
 use PL\Robo\Task\Testor\Tasks;
+use PL\Robo\Plugin\PluginManager;
 use Robo\Result;
 
 class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface
@@ -16,6 +18,7 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface
     use Tasks;
     use TestorConfigAwareTrait;
     use TestorDependencyInjectorTrait;
+    use TestorCommandsTrait;
 
     public function __construct()
     {
@@ -68,6 +71,12 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface
         // Make a target file name (without extension, it can be .sql.gz, tar.gz later than).
         $filename = $this->getSnapshotFilename($ispantheon ? $env : 'local', $element);
         $opts['filename'] = $filename;
+        
+        // Execute pre-snapshot plugins and hooks
+        $result = $this->executePreSnapshotPlugins($opts);
+        if ($result !== null) {
+            return $result;
+        }
 
         if ($element == 'database') {
             if ($ispantheon) {

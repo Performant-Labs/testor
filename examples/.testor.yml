@@ -1,0 +1,80 @@
+# Example Testor configuration with plugin support
+# Add this config to the version control.
+
+pantheon:
+  site: 'example-site'
+
+# Database sanitization configuration
+sanitize:
+  # Using DDEV's Drush command to ensure it runs in the container with MariaDB access
+  command: 'drush sql:sanitize --yes'
+
+# DDEV-specific settings
+ddev:
+  # Set to true to indicate we're using DDEV environment
+  enabled: true
+
+# Plugin configuration
+plugins:
+  # Pre-snapshot handlers
+  custom_pre_snapshot:
+    class: 'MyProject\Plugin\CustomPreSnapshotHandler'
+    label: 'Custom Pre-Snapshot Handler'
+    description: 'Performs custom actions before creating a snapshot'
+    
+  # Post-import handlers
+  custom_post_import:
+    class: 'MyProject\Plugin\CustomPostImportHandler'
+    label: 'Custom Post-Import Handler'
+    description: 'Performs custom actions after importing a snapshot'
+    
+  # Data transformers (including sanitizers)
+  custom_sanitizer:
+    class: 'MyProject\Plugin\CustomSanitizer'
+    label: 'Custom Data Sanitizer'
+    description: 'Sanitizes sensitive information in the database'
+    options:
+      tables:
+        users:
+          fields: ['mail', 'pass']
+        customer_data:
+          fields: ['phone', 'credit_card']
+
+# Hook configuration - alternative to PHP plugins
+hooks:
+  pre_snapshot:
+    commands:
+      - 'drush cache:rebuild'
+      - 'drush sqlq "UPDATE users_field_data SET login = 0 WHERE uid > 1"'
+    
+  post_import:
+    commands:
+      - 'drush updatedb -y'
+      - 'drush config-set system.site mail noreply@example.com -y'
+    sql_files:
+      - '.testor/sql/post-import.sql'
+    
+  data_transform:
+    commands:
+      - 'drush sql:sanitize --yes'
+    sql_files:
+      - '.testor/sql/sanitize-custom-tables.sql'
+
+# Storage configuration
+storage: '[s3|sftp]'
+s3:
+  config:
+    version: 'latest'
+    region: ''
+    endpoint: '[cluster URL]'
+    credentials:
+      key: '[access key]'
+      secret: '${s3_secret}'
+  bucket: '[bucket name]'
+sftp:
+  host: '[host]'
+  user: 'sftpuser'
+  key: '/path/to/private/key'
+  # if key is set, it's password to the key, otherwise password to the server
+  password: ''
+  root: 'sftp/upload'

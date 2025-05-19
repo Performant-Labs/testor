@@ -5,6 +5,11 @@ Changes since 1.4.0:
 - Created custom DDEV commands for database sanitization workflow.
 - Added automatic sanitization after database import.
 - Added pull-and-sanitize command to streamline workflow.
+- Added flexible plugin system for extending functionality:
+  * Configuration-based hooks for simple customization
+  * DDEV hook scripts for shell-based extensions
+  * PHP plugin architecture for advanced customization
+- Added documentation and examples for the plugin system.
 
 Testor 1.4.0, 2024-??
 ------------------------
