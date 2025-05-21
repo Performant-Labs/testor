@@ -21,7 +21,7 @@ class TugboatPreviewCreateTest extends TestorTestCase {
       ->willReturn('1970-01-01 00:00:00');
 
     /** @var TugboatPreviewCreate $tugboatPreviewCreate */
-    $tugboatPreviewCreate = $this->taskTugboatPreviewCreate(['base' => null]);
+    $tugboatPreviewCreate = $this->taskTugboatPreviewCreate(['base' => null, 'anchor' => false]);
 
     $mockBuilder = $this->mockCollectionBuilder();
     $mockBuilder->shouldReceive('taskExec')
@@ -55,7 +55,7 @@ class TugboatPreviewCreateTest extends TestorTestCase {
       ->willReturn('1970-01-01 00:00:00');
 
     /** @var TugboatPreviewCreate $tugboatPreviewCreate */
-    $tugboatPreviewCreate = $this->taskTugboatPreviewCreate(['base' => 'false']);
+    $tugboatPreviewCreate = $this->taskTugboatPreviewCreate(['base' => 'false', 'anchor' => false]);
 
     $mockBuilder = $this->mockCollectionBuilder();
     $mockBuilder->shouldReceive('taskExec')

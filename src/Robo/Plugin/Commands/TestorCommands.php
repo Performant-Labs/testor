@@ -228,9 +228,10 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface {
    * it as the Base Preview, or set this to false to build a
    * Preview without a Base Preview.
    * @option $set Change ATK configs to run test against a new preview.
+   * @option $anchor Make it an anchor preview.
    * @return UnstructuredData Preview in Tugboat's format
    */
-  public function previewCreate(array $opts = ['base' => null, 'set' => false]): UnstructuredData|Result {
+  public function previewCreate(array $opts = ['base' => null, 'set' => false, 'anchor' => false]): UnstructuredData|Result {
     $task = $this->collectionBuilder()->taskTugboatPreviewCreate($opts);
     if ($opts['set']) {
       $task->storeState('preview', 'preview')

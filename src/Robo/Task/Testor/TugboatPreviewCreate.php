@@ -5,10 +5,12 @@ namespace PL\Robo\Task\Testor;
 class TugboatPreviewCreate extends TugboatTask {
 
   protected string|null $base;
+  protected bool $anchor;
 
   public function __construct(array $opts) {
     parent::__construct();
     $this->base = $opts['base'];
+    $this->anchor = $opts['anchor'];
   }
 
   public function run() {
@@ -31,6 +33,9 @@ class TugboatPreviewCreate extends TugboatTask {
     $command = "$this->tugboat create preview \"$githubBranch\"";
     if ($this->base) {
       $command .= " base=$this->base";
+    }
+    if ($this->anchor) {
+      $command .= " anchor=true";
     }
     $command .= " repo=$this->repo label=\"$label\" output=json";
     $result = $this->exec($command, $output);
