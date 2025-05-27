@@ -1,0 +1,19 @@
+# Example Testor configuration using DDEV hook script for sanitization
+# Place this in your project root as .testor.yml
+
+# S3 storage configuration
+storage:
+  type: s3
+  endpoint: https://your-s3-endpoint.com
+  bucket: your-bucket-name
+  region: us-east-1
+  key: your-access-key
+  secret: your-secret-key
+  
+# Site configuration
+site:
+  name: example-site
+
+# Sanitization configuration using DDEV hook script
+sanitize:
+  command: "ddev sanitize-custom"
