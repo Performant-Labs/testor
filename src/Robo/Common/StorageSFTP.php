@@ -43,8 +43,10 @@ class StorageSFTP implements StorageInterface, TestorConfigAwareInterface {
   function put(string $source, string $destination): void {
     $name = "$this->root/$destination";
     $dir = dirname($name);
-    if (!$this->sftp->mkdir($dir, -1, true)) {
-      throw new \Exception("mkdir($dir) failed!");
+    if (!$this->sftp->is_dir($dir)) {
+      if (!$this->sftp->mkdir($dir, -1, true)) {
+        throw new \Exception("mkdir($dir) failed!");
+      }
     }
     if (!$this->sftp->put($name, $source, SFTP::SOURCE_LOCAL_FILE)) {
       throw new \Exception("put($name) failed!");
