@@ -51,7 +51,7 @@ class SnapshotCreate extends TestorTask implements TestorConfigAwareInterface {
         $command = "terminus remote:drush $site.$env -- sql:dump";
       }
       else {
-        $command = "drush sql:dump";
+        $command = $this->testorConfig->getOrDie('sqldump.command');
       }
       $result = $this->exec("{$command} > $filename.sql");
       if ($result->getExitCode() !== 0) {

@@ -2,44 +2,15 @@
 
 namespace PL\Robo\Task\Testor;
 
-class TestorConfigInit extends \Robo\Task\BaseTask {
-  private string $CONFIG = "# Add this config to the version control.
-pantheon:
-  site: '[your Pantheon site name]'
-sanitize:
-  command: 'drush sql:sanitize'
-storage: '[s3|sftp]'
-s3:
-  config:
-    version: 'latest'
-    region: ''
-    endpoint: '[cluster URL]'
-    credentials:
-      key: '[access key]'
-      secret: '\${s3_secret}'
-  bucket: '[bucket name]'
-sftp:
-  host: '[host]'
-  user: 'sftpuser'
-  key: '/path/to/private/key'
-  # if key is set, it's password to the key, otherwise password to the server
-  password: ''
-  root: 'sftp/upload'
-";
-  private string $SECRET_CONFIG = "# Don't add this config to the version control.
-s3_secret: '[secret key]'
-";
-  private string $GITIGNORE = "
-# Testor.
-.testor_secret.yml
-";
+use PL\Robo\Common\TestorConfig;
 
+class TestorConfigInit extends \Robo\Task\BaseTask {
   public function run(): \Robo\Result {
     if (file_exists(".testor.yml")) {
       $this->printTaskInfo(".testor.yml already exists, skip");
     }
     else {
-      file_put_contents(".testor.yml", $this->CONFIG);
+      file_put_contents(".testor.yml", TestorConfig::PLACEHOLDER);
       $this->printTaskInfo(".testor.yml created! Edit configuration and add it to the version control.");
     }
 
@@ -47,10 +18,10 @@ s3_secret: '[secret key]'
       $this->printTaskInfo(".testor_secret.yml already exists, skip");
     }
     else {
-      file_put_contents(".testor_secret.yml", $this->SECRET_CONFIG);
+      file_put_contents(".testor_secret.yml", TestorConfig::SECRET_PLACEHOLDER);
       $this->printTaskInfo(".testor_secret.yml created! Edit configuration and keep it on your machine.");
       if (file_exists(".gitignore")) {
-        file_put_contents(".gitignore", $this->GITIGNORE,
+        file_put_contents(".gitignore", TestorConfig::GITIGNORE,
           FILE_APPEND);
       }
     }

@@ -2,7 +2,12 @@
 
 namespace PL\Robo\Task\Testor;
 
-class SnapshotImport extends TestorTask {
+use PL\Robo\Common\TestorConfigAwareTrait;
+use PL\Robo\Contract\TestorConfigAwareInterface;
+
+class SnapshotImport extends TestorTask implements TestorConfigAwareInterface {
+  use TestorConfigAwareTrait;
+
   protected string|null $filename;
   /**
    * @var bool
@@ -39,7 +44,8 @@ class SnapshotImport extends TestorTask {
       }
     }
 
-    $result = $this->exec("$(drush sql:connect) < $filename.sql");
+    $command = $this->testorConfig->getOrDie('sql.command');
+    $result = $this->exec("$command < $filename.sql");
     return $result;
   }
 

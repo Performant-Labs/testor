@@ -5,6 +5,10 @@ s3:
   bucket: 'snapshot'
 tugboat:
   repo: '1reporepo1'
+sql:
+  command: '$(drush sql:connect)'
+sqldump:
+  command: 'drush sql:dump'
 
 # Export TEST_VAR1=value to test config var substitution
 test:

@@ -4,6 +4,7 @@ namespace PL\Robo;
 
 use Consolidation\Config\Loader\ConfigProcessor;
 use PL\Robo\Common\StorageStrategy;
+use PL\Robo\Common\TestorConfig;
 use Psr\Container\ContainerInterface;
 use Robo\Robo;
 
@@ -81,7 +82,8 @@ class Testor {
    * @return \Consolidation\Config\ConfigInterface|\Robo\Config\Config
    */
   public static function createConfiguration($paths): \Robo\Config\Config|\Consolidation\Config\ConfigInterface {
-    $config = Robo::createConfiguration($paths);
+    $config = new TestorConfig();
+    Robo::loadConfiguration($paths, $config);
 
     // Merge all env variables to achieve var substitution.
     $processor = new ConfigProcessor();
