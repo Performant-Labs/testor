@@ -1,0 +1,32 @@
+name: Build and Publish PHAR
+
+on:
+  release:
+    types: [published] # This workflow runs when a new release is published
+
+env:
+  PHP_VERSION: '8.3'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Project Dependencies (including dev)
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Build PHAR with Box
+        run: vendor/bin/box compile
+
+      - name: List generated PHAR (for debugging)
+        run: ls -lh *.phar
+
+      - name: Upload PHAR as Release Asset
+        uses: softprops/action-gh-release@v2
+        if: github.ref_type == 'tag'
+        with:
+          files: |
+            *.phar
