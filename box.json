@@ -1,0 +1,16 @@
+{
+  "main": "testor",
+  "output": "testor.phar",
+  "stub": true,
+  "compression": "GZ",
+  "force-autodiscovery": false,
+  "directories": [
+    "src",
+    "vendor"
+  ],
+  "files": [
+    "testor",
+    "vendor/humbug/php-scoper/vendor-hotfix/.gitkeep"
+  ],
+  "exclude-dev-files": true
+}

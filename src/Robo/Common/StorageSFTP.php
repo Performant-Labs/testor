@@ -17,8 +17,8 @@ class StorageSFTP implements StorageInterface, TestorConfigAwareInterface {
   public function __construct() {
     $this->injectTestorDependencies();
 
-    $host = $this->testorConfig->get('sftp.host');
-    $user = $this->testorConfig->get('sftp.user');
+    $host = $this->testorConfig->getOrDie('sftp.host');
+    $user = $this->testorConfig->get('sftp.user', getenv('USER'));
     $key = $this->testorConfig->get('sftp.key');
     $password = $this->testorConfig->get('sftp.password');
     if ((bool) $key)
@@ -37,7 +37,7 @@ class StorageSFTP implements StorageInterface, TestorConfigAwareInterface {
     }
 
     $this->sftp = $sftp;
-    $this->root = $this->testorConfig->get('sftp.root');
+    $this->root = $this->testorConfig->getOrDie('sftp.root');
   }
 
   function put(string $source, string $destination): void {

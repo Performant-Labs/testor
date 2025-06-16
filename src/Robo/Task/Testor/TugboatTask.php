@@ -14,11 +14,7 @@ abstract class TugboatTask extends TestorTask
   protected string $repo;
 
   public function initTugboat(): bool {
-    $repo = $this->testorConfig->get('tugboat.repo');
-    if (!(bool) $repo) {
-      $this->message = "Please configure `tugboat.repo` (Use `tugboat ls repos` or dashboard.tugboatqa.com)";
-      return false;
-    }
+    $repo = $this->testorConfig->getOrDie('tugboat.repo');
     $this->repo = $repo;
 
     if (!$this->isExecutable('tugboat')) {
@@ -48,7 +44,10 @@ abstract class TugboatTask extends TestorTask
       // Authorize tugboat (can be done either by `tugboat auth` or directly editing the config...)
       $tugboatToken = $this->testorConfig->get('tugboat.token', getenv('TUGBOAT_TOKEN'));
       if (!(bool) $tugboatToken) {
-        $this->message = "Please configure tugboat.token";
+        $this->message = "Tugboat must be authorized in one of the following ways:\n
+        - token in ~/.tugboat.yml
+        - tugboat.token in .testor_secret.yml
+        - TUGBOAT_TOKEN env variable";
         return false;
       }
       file_put_contents(getenv('HOME') . '/.tugboat.yml', "token: $tugboatToken");

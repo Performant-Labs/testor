@@ -2,16 +2,14 @@
 
 namespace PL\Robo\Common;
 
-use Consolidation\Config\ConfigInterface;
-
 trait TestorConfigAwareTrait {
-  protected ConfigInterface $testorConfig;
+  protected TestorConfig $testorConfig;
 
-  public function getTestorConfig(): ConfigInterface {
+  public function getTestorConfig(): TestorConfig {
     return $this->testorConfig;
   }
 
-  public function setTestorConfig(ConfigInterface $testorConfig): static {
+  public function setTestorConfig(TestorConfig $testorConfig): static {
     $this->testorConfig = $testorConfig;
     return $this;
   }

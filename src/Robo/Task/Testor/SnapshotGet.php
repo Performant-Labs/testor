@@ -26,6 +26,9 @@ class SnapshotGet extends TestorTask
     /** @var SnapshotList $taskSnapshotList */
     $taskSnapshotList = $this->collectionBuilder()->taskSnapshotList(array('name' => $this->name, 'element' => $this->element));
     $result = $taskSnapshotList->run();
+    if (!$result->wasSuccessful()) {
+      return $result;
+    }
     if (!(bool) $result['table']) {
       return $this->fail();
     }
