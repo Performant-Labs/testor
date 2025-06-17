@@ -16,7 +16,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Project Dependencies (including dev)
-        run: composer install --prefer-dist --no-progress --no-interaction
+        run: |
+          # Configure Composer to consider the target platform PHP version
+          composer config platform.php 8.2.0
+          composer install --prefer-dist --no-progress --no-interaction
 
       - name: Build PHAR with Box
         run: vendor/bin/box compile
