@@ -22,7 +22,7 @@ class StorageSFTP implements StorageInterface, TestorConfigAwareInterface {
     $key = $this->testorConfig->get('sftp.key');
     $password = $this->testorConfig->get('sftp.password');
     if ((bool) $key)
-      $key = PublicKeyLoader::load(file_get_contents($key, $password));
+      $key = PublicKeyLoader::load(file_get_contents($key), $password ?? false);
 
 //        TODO consider moving SFTP to container, to be able to test...
     $sftp = new SFTP($host);
