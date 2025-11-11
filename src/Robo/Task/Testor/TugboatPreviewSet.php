@@ -108,8 +108,8 @@ class TugboatPreviewSet extends TugboatTask {
     // Both cypress and playwright config must have single-quoted strings.
     if ($this->framework === 'playwright') {
       $config = preg_replace(
-        "~(//[[:space:]]*)?baseURL: '.*'~",
-        "baseURL: '{$repl['baseURL']}'",
+        "~(//[[:space:]]*)?baseURL: .*,~",
+        "baseURL: '{$repl['baseURL']}',",
         $config,
         1, $count);
     }

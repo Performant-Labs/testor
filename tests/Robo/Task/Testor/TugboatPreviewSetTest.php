@@ -230,6 +230,60 @@ baseURL: 'https://tugboatqa.com/test/',
                     service: \"11php12345\"
                   }
                 }\n"
+      ],
+      [
+        // playwright.config.js
+        "import { defineConfig, devices } from '@playwright.test';
+                
+                export default defineConfig({
+                  testDir: './tests',
+                  /* other parameters that we are not interested in */
+                  blabla: 'blablablaj',
+                  /* Base URL */
+                  use: {
+                    baseURL: process.env.BASE_URL || 'https://old.url.here',
+                  }
+                });
+                ",
+        // playwright.atk.config.js -- tugboatis set
+        "export default {
+                  testDir: \"tests\",
+                  pantheon: {
+                    isTarget: false,
+                    site: \"aSite\",
+                    environment: \"dev\"
+                  },
+                  tugboat: {
+                    isTarget: true,
+                    service: \"11oldidold\"
+                  }
+                }",
+        // playwright.config.js **after**
+        "import { defineConfig, devices } from '@playwright.test';
+                
+                export default defineConfig({
+                  testDir: './tests',
+                  /* other parameters that we are not interested in */
+                  blabla: 'blablablaj',
+                  /* Base URL */
+                  use: {
+                    baseURL: 'https://tugboatqa.com/test/',
+                  }
+                });
+                ",
+        // playwright.atk.config.js **after**
+        "export default {
+                  testDir: \"tests\",
+                  pantheon: {
+                    isTarget: false,
+                    site: \"aSite\",
+                    environment: \"dev\"
+                  },
+                  tugboat: {
+                    isTarget: true,
+                    service: \"11php12345\"
+                  }
+                }\n"
       ]
     ];
   }
