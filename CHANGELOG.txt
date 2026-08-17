@@ -1,3 +1,14 @@
+Testor 1.11.0, 2026-08-16
+-------------------------
+Changes since 1.10.3:
+- Added optional --snapshot version pinning to SnapshotGet/snapshot:get (default remains latest).
+- Added DbUuidNormalize task, normalizing a target's Drupal site UUID at restore time.
+- Added snapshot:refresh command: generic, config-driven producer orchestration
+  (optional pull -> sanitize -> put).
+- Added snapshot:restore command: generic, config-driven consumer orchestration
+  (get, honoring version pinning -> import -> UUID normalize).
+
+
 Testor 1.1.0, 2024-09-17
 ------------------------
 Changes since 1.0.0:
