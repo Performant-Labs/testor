@@ -1,0 +1,15 @@
+# A deliberately non-performantlabs.com fixture, used to prove that
+# snapshot:refresh (the producer orchestration) is fully config-driven and
+# hardcodes nothing about any particular project. Every value below is
+# fictional and distinct from .testor_test.yml's shape.
+pantheon:
+  site: 'acme-widgets'
+s3:
+  config: '**DUMMY**'
+  bucket: 'nightly-dumps'
+sql:
+  command: '$(drush sql:connect)'
+sqldump:
+  command: 'drush sql:dump'
+sanitize:
+  command: 'drush sql:sanitize --sanitize-email=redacted@example.test'
