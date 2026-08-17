@@ -58,6 +58,10 @@ namespace PL\Robo\Task\Testor {
       return $this->task(SnapshotGet::class, $opts);
     }
 
+    protected function taskSnapshotRestore(array $opts): \Robo\Collection\CollectionBuilder {
+      return $this->task(SnapshotRestore::class, $opts);
+    }
+
     protected function taskTugboatPreviewCreate(array $opts): \Robo\Collection\CollectionBuilder {
       return $this->task(TugboatPreviewCreate::class, $opts);
     }

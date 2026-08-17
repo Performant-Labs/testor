@@ -199,6 +199,35 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface {
   }
 
   /**
+   * Restore a snapshot into the target database.
+   *
+   * Generic consumer command: pulls a snapshot from the configured storage,
+   * imports it into the target database, then reconciles the restored Drupal
+   * site uuid with the target environment (a no-op when no target uuid is
+   * resolvable). Everything is driven by `.testor.yml` (bucket, `sql.command`,
+   * `uuid.*`) — no project-specific values are baked in.
+   *
+   * @param array $opts
+   * @option $name Name of the snapshot, can be either exact name, or prefix
+   * like "developer" or "preview" — the folder the snapshot lives under.
+   * @option $output Output file. If not specified, original file name is kept.
+   * @option $element Element to restore (code, database, files).
+   * @option $snapshot Exact name of a specific snapshot to restore (as shown
+   * in the "Name" column of `snapshot:list`). When omitted, the latest
+   * snapshot is restored. When set, it must match exactly, or the command
+   * fails — it never silently falls back to the latest.
+   * @option $uuid Target Drupal site uuid to normalize to after import. When
+   * omitted, `uuid.value` from config is used; if neither is set, the uuid
+   * normalization step is skipped.
+   * @return Result
+   */
+  public function snapshotRestore(array $opts = ['name' => '', 'output|o' => null, 'element' => 'database', 'snapshot' => null, 'uuid' => null]): Result {
+    $this->normalizeElement($opts);
+    $result = $this->collectionBuilder()->taskSnapshotRestore($opts)->run();
+    return $this->echo($result);
+  }
+
+  /**
    * Delete snapshot(s) from the storage.
    *
    * @option $name Name or prefix of snapshot(s)
