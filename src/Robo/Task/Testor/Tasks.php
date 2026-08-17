@@ -46,6 +46,10 @@ namespace PL\Robo\Task\Testor {
       return $this->task(SnapshotViaBackup::class, $opts);
     }
 
+    protected function taskSnapshotRefresh(array $opts): \Robo\Collection\CollectionBuilder {
+      return $this->task(SnapshotRefresh::class, $opts);
+    }
+
     protected function taskSnapshotList(array $opts): \Robo\Collection\CollectionBuilder {
       return $this->task(SnapshotList::class, $opts);
     }

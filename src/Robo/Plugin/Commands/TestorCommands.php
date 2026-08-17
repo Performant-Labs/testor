@@ -123,6 +123,63 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface {
   }
 
   /**
+   * Refresh a snapshot: (optionally) pull from the source environment,
+   * sanitize, then push to the configured storage — in one repeatable,
+   * config-driven command.
+   *
+   * This is the generic producer orchestration (epic #24). It chains the
+   * existing primitives (SnapshotViaBackup/SnapshotCreate, DbSanitize,
+   * SnapshotPut). Everything (Pantheon site, sanitization rules, bucket) comes
+   * from .testor.yml; nothing is hardcoded to any project.
+   *
+   * There is deliberately NO UUID-normalization step here: per issue #25 the
+   * Drupal site-UUID massaging is a consumer-side (restore-time) concern, since
+   * the correct uuid is a property of the target environment, not the snapshot.
+   * That belongs to the consumer command (issue #28).
+   *
+   * The chain short-circuits: if sanitize fails, the unsanitized dump is never
+   * pushed to storage.
+   *
+   * @param string $file Local dump to operate on when --skip-download is set
+   * (reuses an already-local dump instead of pulling a fresh one). Ignored when
+   * pulling. If empty in --skip-download mode, a filename is derived the same
+   * way as a fresh local pull would.
+   * @param array $opts
+   * @option $env It can be either '@self' (current database), a Drush alias,
+   * or a Pantheon env
+   * @option $name Name of the snapshot, such as "developer" or "preview",
+   * will be prefixed to the real unique snapshot name (it can be thought
+   * as a folder)
+   * @option $element Element to refresh (currently database)
+   * @option $do-not-sanitize Skip database sanitize command
+   * @option $skip-download Skip the pull stage and re-sanitize/re-push an
+   * already-local dump (do not hit the source environment again)
+   * @return Result
+   */
+  public function snapshotRefresh(string $file = '', array $opts = ['env' => '@self', 'name' => 'default', 'element' => 'database', 'do-not-sanitize' => false, 'skip-download' => false]): Result {
+    $env = $opts['env'];
+    $ispantheon = !str_starts_with($env, '@');
+
+    // Normalize element.
+    $element = $this->normalizeElement($opts);
+
+    if ($opts['skip-download'] && $file !== '') {
+      // Reuse the caller-supplied local dump. Derive the extension-less base
+      // name the same way snapshot:put does, so SnapshotPut finds the archive.
+      preg_match('/(.*?)(\.tar|\.sql)?(\.gz)?$/', $file, $m);
+      $filename = $m[1];
+    }
+    else {
+      // Make a target file name (without extension; it becomes .tar.gz later).
+      $filename = $this->getSnapshotFilename($ispantheon ? $env : 'local', $element);
+    }
+    $opts['filename'] = $filename;
+
+    $result = $this->collectionBuilder()->taskSnapshotRefresh($opts)->run();
+    return $this->echo($result);
+  }
+
+  /**
    * Put snapshot from the local file system to the storage.
    *
    * @param string $file Local file name
