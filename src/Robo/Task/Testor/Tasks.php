@@ -26,6 +26,10 @@ namespace PL\Robo\Task\Testor {
       return $this->task(DbSanitize::class, $opts);
     }
 
+    protected function taskDbUuidNormalize(array $opts): \Robo\Collection\CollectionBuilder {
+      return $this->task(DbUuidNormalize::class, $opts);
+    }
+
     protected function taskSnapshotCreate(array $opts): \Robo\Collection\CollectionBuilder {
       return $this->task(SnapshotCreate::class, $opts);
     }
