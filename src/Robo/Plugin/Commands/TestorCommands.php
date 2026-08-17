@@ -180,9 +180,13 @@ class TestorCommands extends \Robo\Tasks implements TestorConfigAwareInterface {
    * @option $output Output file. If not specified, original file name will be kept.
    * @option $element Element to get backups for (code, database, files)
    * @option $import Import database after download
+   * @option $snapshot Exact name of a specific snapshot to fetch (as shown in
+   * the "Name" column of `snapshot:list`). When omitted, the latest snapshot is
+   * fetched. When set, it must match exactly, or the command fails — it never
+   * silently falls back to the latest.
    * @return Result
    */
-  public function snapshotGet(array $opts = ['name' => '', 'output|o' => null, 'element' => 'database', 'import' => false]): Result {
+  public function snapshotGet(array $opts = ['name' => '', 'output|o' => null, 'element' => 'database', 'import' => false, 'snapshot' => null]): Result {
     $task = $this->collectionBuilder()->taskSnapshotGet($opts);
     if ($opts['import']) {
       $task
