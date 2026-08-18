@@ -91,11 +91,25 @@ class SnapshotRefresh extends TestorTask implements TestorConfigAwareInterface {
     // Stage 2: import the pulled RAW dump into the database, so that the
     // sanitize in stage 3 has real data to act on. Without this, sanitize
     // mutates some unrelated already-connected DB and the raw download is
-    // pushed untouched (issue #33). `gzip => true`: both pullers land a
-    // `.tar.gz` (Pantheon's `backup:get --to=…tar.gz`; the local puller packs
-    // its `.sql` into `…tar.gz`), which SnapshotImport unpacks before loading.
+    // pushed untouched (issue #33).
+    //
+    // `gzip` tells SnapshotImport whether it must unpack a tar+gzip archive
+    // first, or whether the pull already left a plain `.sql` on disk:
+    //   - Local puller (SnapshotCreate) always packs its `.sql` into a real
+    //     `…tar.gz` -> needs unpacking (`gzip => true`).
+    //   - `--skip-download` always reuses an already-local `…tar.gz` (the
+    //     format every earlier pull in this codebase leaves behind) -> needs
+    //     unpacking (`gzip => true`).
+    //   - Pantheon `database` pulls (SnapshotViaBackup) decompress terminus's
+    //     plain-gzip download straight to `.sql` themselves (issue #35 — a
+    //     Pantheon database backup has no tar layer at all) -> the archive is
+    //     already `.sql`, so import must NOT try to unpack it (`gzip =>
+    //     false`), or it fails trying to open real SQL content as a tar file.
+    $env = $opts['env'];
+    $ispantheon = !str_starts_with($env, '@');
+    $alreadySql = !$this->skipDownload && $ispantheon && ($opts['element'] ?? 'database') === 'database';
     $result = $this->collectionBuilder()
-      ->taskSnapshotImport([...$opts, 'gzip' => true])
+      ->taskSnapshotImport([...$opts, 'gzip' => !$alreadySql])
       ->run();
     if (!$result->wasSuccessful()) {
       // Short-circuit: a failed import must not let a raw dump reach the push.

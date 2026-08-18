@@ -34,6 +34,7 @@ namespace PL\Tests\Robo\Task\Testor {
       parent::tearDown();
       foreach ([
         '__test_refresh.sql',
+        '__test_refresh.gz',
         '__test_refresh.tar',
         '__test_refresh.tar.gz',
       ] as $f) {
@@ -223,6 +224,14 @@ namespace PL\Tests\Robo\Task\Testor {
      * RE-EXPORT -> SnapshotPut. Proves the env branch selects the Pantheon
      * puller AND that the raw download is imported/sanitized/re-exported before
      * the push — the exact leak in issue #33.
+     *
+     * The `database` element mirrors the REAL Pantheon backup format (issue
+     * #35): plain `gzip(*.sql)`, no tar layer at all — verified against a real
+     * downloaded backup via `file`: "gzip compressed data, was
+     * \"...database.sql\"". SnapshotViaBackup downloads straight to `.gz` and
+     * gunzips it itself to `.sql`, so the import stage runs with `gzip =>
+     * false` (already-`.sql`, no tar-unpack) instead of trying — and failing —
+     * to tar-extract real SQL bytes.
      */
     public function testFullPullPantheonImportsSanitizesReexportsBeforePut() {
       /** @var \Consolidation\Config\Config $testorConfig */
@@ -244,15 +253,15 @@ namespace PL\Tests\Robo\Task\Testor {
         'filename' => '__test_refresh',
       ];
 
-      // Seed the raw download the Pantheon puller would have produced, so the
-      // import stage has a real archive to unpack. Contains a sentinel prod
-      // email — the analogue of the real leak.
-      $this->seedArchive('__test_refresh', 'raw prod dump: aangel@performantlabs.com');
+      $base = '__test_refresh';
+      $rawProdDump = 'raw prod dump: aangel@performantlabs.com';
 
       $snapshotRefresh = $this->taskSnapshotRefresh($opts);
       $mockBuilder = $this->mockCollectionBuilder();
 
-      // Stage 1: Pantheon backup path — three terminus commands.
+      // Stage 1: Pantheon backup path — three terminus commands. The real
+      // backup:get download is a plain gzip of the raw .sql (no tar layer);
+      // fake terminus by writing that same shape of file to `.gz`.
       $snapshotViaBackup = $this->taskSnapshotViaBackup($opts);
       $mockBuilder->shouldReceive('taskSnapshotViaBackup')
         ->once()
@@ -267,12 +276,29 @@ namespace PL\Tests\Robo\Task\Testor {
         ->andReturn($this->mockTaskExec($snapshotViaBackup, 0, '{"1": {"file": "performant-labs_11111_database.sql.gz"}}'));
       $mockBuilder->shouldReceive('taskExec')
         ->once()
-        ->with('terminus backup:get performant-labs.dev --file=performant-labs_11111_database.sql.gz --to=__test_refresh.tar.gz')
-        ->andReturn($this->mockTaskExec($snapshotViaBackup, 0, 'OK'));
+        ->with('terminus backup:get performant-labs.dev --file=performant-labs_11111_database.sql.gz --to=__test_refresh.gz')
+        ->andReturnUsing(function () use ($snapshotViaBackup, $base, $rawProdDump) {
+          file_put_contents("$base.gz", gzencode($rawProdDump, 9));
+          return $this->mockTaskExec($snapshotViaBackup, 0, 'OK');
+        });
       $snapshotViaBackup->setBuilder($mockBuilder);
 
-      // Stages 2 + 4: import and re-export.
-      $this->expectImportAndReexport($mockBuilder, $opts, '__test_refresh');
+      // Stage 2: import — already-plain .sql (gzip => false, no unpack).
+      $snapshotImport = $this->taskSnapshotImport([...$opts, 'gzip' => false]);
+      $mockBuilder->shouldReceive('taskSnapshotImport')
+        ->once()
+        ->andReturn($snapshotImport);
+      $mockBuilder->shouldReceive('taskArchiveUnpack')->never();
+      $mockBuilder->shouldReceive('taskExec')
+        ->once()
+        ->with('$(drush sql:connect) < ' . "$base.sql")
+        ->andReturnUsing(function () use ($snapshotImport, $base, $rawProdDump) {
+          // Prove the file SnapshotViaBackup left behind really is the
+          // decompressed raw SQL, not "exit code 0" alone.
+          self::assertEquals($rawProdDump, file_get_contents("$base.sql"));
+          return $this->mockTaskExec($snapshotImport, 0, 'imported');
+        });
+      $snapshotImport->setBuilder($mockBuilder);
 
       // Stage 3: sanitize.
       $dbSanitize = $this->taskDbSanitize($opts);
@@ -284,6 +310,24 @@ namespace PL\Tests\Robo\Task\Testor {
         ->with('drush sql:sanitize')
         ->andReturn($this->mockTaskExec($dbSanitize, 0, 'OK'));
       $dbSanitize->setBuilder($mockBuilder);
+
+      // Stage 4: re-export (dump the sanitized DB, then pack — real tar+gzip,
+      // testor's own producer format).
+      $snapshotReexport = $this->taskSnapshotCreate([...$opts, 'ispantheon' => false]);
+      $mockBuilder->shouldReceive('taskSnapshotCreate')
+        ->once()
+        ->andReturn($snapshotReexport);
+      $mockBuilder->shouldReceive('taskExec')
+        ->once()
+        ->with('drush sql:dump > ' . "$base.sql")
+        ->andReturnUsing(function () use ($snapshotReexport, $base) {
+          file_put_contents("$base.sql", 'sanitized dump');
+          return $this->mockTaskExec($snapshotReexport, 0, 'dumped');
+        });
+      $mockBuilder->shouldReceive('taskArchivePack')
+        ->once()
+        ->andReturnUsing(fn(...$args) => $this->taskArchivePack(...$args));
+      $snapshotReexport->setBuilder($mockBuilder);
 
       // Stage 5: put.
       $snapshotPut = $this->taskSnapshotPut($opts);
@@ -304,6 +348,13 @@ namespace PL\Tests\Robo\Task\Testor {
 
       $result = $snapshotRefresh->run();
       self::assertEquals(0, $result->getExitCode());
+
+      // Final proof the pushed archive really unpacks to the sanitized
+      // content — not the fixture's real prod dump — with a real tar+gzip
+      // unpack (SnapshotCreate's own format), exercising the
+      // must-not-regress path end to end.
+      \exec("tar -xf $base.tar.gz");
+      self::assertEquals('sanitized dump', file_get_contents("$base.sql"));
     }
 
     /**

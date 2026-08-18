@@ -1,3 +1,18 @@
+Testor 1.11.2, 2026-08-18
+-------------------------
+Changes since 1.11.1:
+- Fixed snapshot:refresh's Pantheon `database` backup path (issue #35):
+  terminus's backup:get delivers a PLAIN gzip of a raw .sql file, not a
+  gzipped tar archive, but SnapshotViaBackup unconditionally named the
+  download `.tar.gz` and the import stage (added in 1.11.1) tried to
+  tar-extract it, failing with "corrupted tar file" checksum errors. Pantheon
+  `database` backups now download to `.gz` and are gunzipped directly to
+  `.sql`, bypassing tar extraction entirely for this path; SnapshotRefresh
+  skips the (now unnecessary) unpack step accordingly. The genuinely
+  tar+gzip local-dump path (SnapshotCreate, via taskArchivePack) is
+  unaffected and still unpacks via taskArchiveUnpack as before.
+
+
 Testor 1.11.1, 2026-08-18
 -------------------------
 Changes since 1.11.0:
