@@ -42,6 +42,7 @@ namespace PL\Tests\Robo\Task\Testor {
       parent::tearDown();
       foreach ([
         '__generic_refresh.sql',
+        '__generic_refresh.gz',
         '__generic_refresh.tar',
         '__generic_refresh.tar.gz',
       ] as $f) {
@@ -60,6 +61,12 @@ namespace PL\Tests\Robo\Task\Testor {
 
     /**
      * Full pull against a Pantheon env, driven entirely by the generic fixture.
+     *
+     * The database element mirrors the REAL Pantheon backup format (issue
+     * #35): plain `gzip(*.sql)`, no tar layer — SnapshotViaBackup downloads to
+     * `.gz` and gunzips it directly to `.sql` itself, so the import stage
+     * receives an already-`.sql` file (`gzip => false`) instead of unpacking
+     * a tar archive.
      */
     public function testRefreshUsesGenericConfigValues() {
       // Mock shell_exec for SnapshotViaBackup's checkTerminus().
@@ -77,23 +84,13 @@ namespace PL\Tests\Robo\Task\Testor {
         'filename' => '__generic_refresh',
       ];
 
-      // Seed the raw download the Pantheon puller would produce, so the import
-      // stage has a real archive to unpack.
       $base = '__generic_refresh';
-      file_put_contents("$base.sql", 'raw dump');
-      $phar = new \PharData("$base.tar");
-      $phar->addFile("$base.sql");
-      $phar->compress(\Phar::GZ);
-      unlink("$base.tar");
-      // Remove the loose .sql so the import's ArchiveUnpack (no overwrite flag)
-      // extracts cleanly — mirrors what a real pull leaves on disk.
-      unlink("$base.sql");
 
       $snapshotRefresh = $this->taskSnapshotRefresh($opts);
       $mockBuilder = $this->mockCollectionBuilder();
 
       $snapshotViaBackup = $this->taskSnapshotViaBackup($opts);
-      $snapshotImport = $this->taskSnapshotImport([...$opts, 'gzip' => true]);
+      $snapshotImport = $this->taskSnapshotImport([...$opts, 'gzip' => false]);
       $dbSanitize = $this->taskDbSanitize($opts);
       $snapshotReexport = $this->taskSnapshotCreate([...$opts, 'ispantheon' => false]);
       $snapshotPut = $this->taskSnapshotPut($opts);
@@ -107,10 +104,15 @@ namespace PL\Tests\Robo\Task\Testor {
         ->once()
         ->with('terminus backup:list acme-widgets.live --format=json')
         ->andReturn($this->mockTaskExec($snapshotViaBackup, 0, '{"1": {"file": "acme-widgets_99999_database.sql.gz"}}'));
+      // Real Pantheon `database` backups are plain gzip(*.sql), no tar layer.
+      // Downloads to .gz; SnapshotViaBackup gunzips it to .sql itself.
       $mockBuilder->shouldReceive('taskExec')
         ->once()
-        ->with('terminus backup:get acme-widgets.live --file=acme-widgets_99999_database.sql.gz --to=__generic_refresh.tar.gz')
-        ->andReturn($this->mockTaskExec($snapshotViaBackup, 0, 'OK'));
+        ->with('terminus backup:get acme-widgets.live --file=acme-widgets_99999_database.sql.gz --to=__generic_refresh.gz')
+        ->andReturnUsing(function () use ($snapshotViaBackup, $base) {
+          file_put_contents("$base.gz", gzencode('raw dump', 9));
+          return $this->mockTaskExec($snapshotViaBackup, 0, 'OK');
+        });
 
       $mockBuilder->shouldReceive('taskSnapshotViaBackup')
         ->once()
@@ -128,10 +130,9 @@ namespace PL\Tests\Robo\Task\Testor {
         ->once()
         ->andReturn($snapshotPut);
 
-      // Stage 2: import — unpack (real Phar) then the GENERIC sql.command.
-      $mockBuilder->shouldReceive('taskArchiveUnpack')
-        ->once()
-        ->andReturnUsing(fn(...$args) => $this->taskArchiveUnpack(...$args));
+      // Stage 2: import — the file is already plain .sql (no unpack), then
+      // the GENERIC sql.command.
+      $mockBuilder->shouldReceive('taskArchiveUnpack')->never();
       $mockBuilder->shouldReceive('taskExec')
         ->once()
         ->with('$(drush sql:connect) < __generic_refresh.sql')
