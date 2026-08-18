@@ -1,3 +1,19 @@
+Testor 1.11.3, 2026-08-18
+-------------------------
+Changes since 1.11.2:
+- Fixed ArchivePack/ArchiveUnpack silently truncating content on extraction
+  (issue #37): PharData's own gzip round-trip (compress(Phar::GZ), then
+  re-open + extractTo()) writes a 0-byte file for the extracted entry on
+  both macOS and Linux PHP 8.3.x, despite reporting success and correct
+  archive metadata — a genuine PharData defect, not an environment quirk.
+  This affected snapshot:refresh's local/@self pull path and any
+  snapshot:get/snapshot:restore import against a locally-produced .tar.gz,
+  silently importing/restoring empty SQL while exiting 0. ArchivePack and
+  ArchiveUnpack now keep PharData for the tar layer only (confirmed
+  reliable) and gzip/gunzip via PHP's zlib streams directly, matching the
+  gunzipToSql pattern used by SnapshotViaBackup for issue #35.
+
+
 Testor 1.11.2, 2026-08-18
 -------------------------
 Changes since 1.11.1:
