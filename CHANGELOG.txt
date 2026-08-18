@@ -1,3 +1,22 @@
+Testor 1.11.1, 2026-08-18
+-------------------------
+Changes since 1.11.0:
+- SECURITY (issue #33): snapshot:refresh no longer pushes an unsanitized
+  production dump. The chain now imports the pulled dump into the database,
+  sanitizes THAT database in place, and re-exports it before pushing
+  (pull -> import -> sanitize -> re-export -> put), instead of sanitizing an
+  unrelated already-connected local DB while pushing the raw download. This
+  applies to both the Pantheon-backup and the local/@self pull paths, which had
+  the identical dump-before-sanitize flaw. The chain short-circuits on a failed
+  import or re-export, so no unsanitized/corrupted file can reach storage. Uses
+  the existing sql.command (import) and sqldump.command (re-export) config keys;
+  no new configuration is required.
+- Fixed ArchivePack to evict any per-process Phar registration for the target
+  .tar.gz before recreating it, so packing the same archive twice within one
+  run (as the hardened snapshot:refresh now does) no longer fails with "a phar
+  with that name already exists".
+
+
 Testor 1.11.0, 2026-08-16
 -------------------------
 Changes since 1.10.3:

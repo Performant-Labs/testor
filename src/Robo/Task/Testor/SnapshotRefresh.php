@@ -12,10 +12,28 @@ use Robo\Result;
  * source environment, sanitize it, then push it to the configured storage.
  *
  * This is the producer half of the epic-#24 pipeline. It chains the existing
- * primitives — {@see SnapshotViaBackup}/{@see SnapshotCreate}, {@see DbSanitize},
- * {@see SnapshotPut} — into one repeatable, config-driven command. Everything
- * (Pantheon site, sanitization rules, bucket) comes from `.testor.yml`; nothing
- * is hardcoded to any particular project.
+ * primitives — {@see SnapshotViaBackup}/{@see SnapshotCreate}, {@see SnapshotImport},
+ * {@see DbSanitize}, {@see SnapshotCreate} (re-export), {@see SnapshotPut} — into
+ * one repeatable, config-driven command. Everything (Pantheon site, sanitization
+ * rules, bucket) comes from `.testor.yml`; nothing is hardcoded to any particular
+ * project.
+ *
+ * SECURITY-CRITICAL ORDERING (issue #33). The pulled dump is raw production data.
+ * `drush sql:sanitize` only ever mutates the database drush is *connected* to — it
+ * cannot reach into a `.sql`/`.tar.gz` file on disk. So a chain of
+ * pull → sanitize → put sanitizes some unrelated already-connected local DB and
+ * then pushes the UNTOUCHED raw download — leaking every prod email/password hash.
+ * The only correct order is therefore:
+ *
+ *   pull → IMPORT the pulled dump into the DB → sanitize THAT DB → RE-EXPORT the
+ *   now-sanitized DB back into the file → put.
+ *
+ * The import (`sql.command < file.sql`, via {@see SnapshotImport}) and re-export
+ * (`sqldump.command > file.sql` + pack, via {@see SnapshotCreate}'s local branch)
+ * are the two stages that make the sanitize operate on — and the push carry — the
+ * pulled data. This holds identically for the Pantheon and the local/`@self`
+ * puller: both land a raw `.tar.gz` that is only sanitized once it has been
+ * imported, sanitized in place, and re-exported.
  *
  * Deliberately NO UUID-normalization step. Per issue #25's settled design, the
  * Drupal site-UUID massaging ({@see DbUuidNormalize}) is a CONSUMER-side
@@ -26,8 +44,9 @@ use Robo\Result;
  * command (issue #28) instead.
  *
  * The chain short-circuits: each stage's result is checked, and a failure
- * returns immediately so that no later stage runs (e.g. a failed sanitize must
- * never push an unsanitized dump to storage).
+ * returns immediately so that no later stage runs. A failed pull, import,
+ * sanitize, OR re-export must never let an unsanitized (or corrupted) file reach
+ * {@see SnapshotPut}.
  *
  * Mirrors {@see SnapshotGet}'s orchestration style: it drives sub-tasks through
  * `collectionBuilder()->taskX()->run()` and inspects each Result, rather than
@@ -69,14 +88,40 @@ class SnapshotRefresh extends TestorTask implements TestorConfigAwareInterface {
       }
     }
 
-    // Stage 2: sanitize the (local) dump.
+    // Stage 2: import the pulled RAW dump into the database, so that the
+    // sanitize in stage 3 has real data to act on. Without this, sanitize
+    // mutates some unrelated already-connected DB and the raw download is
+    // pushed untouched (issue #33). `gzip => true`: both pullers land a
+    // `.tar.gz` (Pantheon's `backup:get --to=…tar.gz`; the local puller packs
+    // its `.sql` into `…tar.gz`), which SnapshotImport unpacks before loading.
+    $result = $this->collectionBuilder()
+      ->taskSnapshotImport([...$opts, 'gzip' => true])
+      ->run();
+    if (!$result->wasSuccessful()) {
+      // Short-circuit: a failed import must not let a raw dump reach the push.
+      return $result;
+    }
+
+    // Stage 3: sanitize the just-imported database in place.
     $result = $this->collectionBuilder()->taskDbSanitize($opts)->run();
     if (!$result->wasSuccessful()) {
       // Short-circuit: never push an unsanitized dump.
       return $result;
     }
 
-    // Stage 3: push the sanitized result to the configured storage.
+    // Stage 4: re-export the now-sanitized database back into the file that
+    // stage 5 pushes. Reuses SnapshotCreate's local branch
+    // (`sqldump.command > file.sql`, then pack to `file.tar.gz`). Without this,
+    // the file on disk is still the raw pre-sanitize dump from stage 1.
+    $result = $this->collectionBuilder()
+      ->taskSnapshotCreate([...$opts, 'ispantheon' => false])
+      ->run();
+    if (!$result->wasSuccessful()) {
+      // Short-circuit: a failed/partial re-export must not reach the push.
+      return $result;
+    }
+
+    // Stage 5: push the sanitized, re-exported result to the configured storage.
     return $this->collectionBuilder()->taskSnapshotPut($opts)->run();
   }
 
