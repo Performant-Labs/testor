@@ -115,4 +115,87 @@ abstract class TestorTask extends \Robo\Task\BaseTask implements \Robo\Contract\
     return true;
   }
 
+  /**
+   * Gzip-compress a file to a new path via PHP's zlib streams, WITHOUT going
+   * through `PharData::compress(Phar::GZ)`. `PharData`'s own gzip round-trip
+   * (compress then re-open + extractTo) has been confirmed (issue #37) to
+   * silently write 0-byte extracted content on both macOS and Linux PHP
+   * 8.3.x, despite reporting success and correct archive metadata — plain
+   * (uncompressed) `PharData` tar handling is unaffected, so gzip is kept
+   * entirely outside it.
+   *
+   * @param string $source Path to the file to compress.
+   * @param string $destination Path to write the gzip-compressed file to.
+   * @return bool True on success (sets `$this->message` on failure).
+   */
+  protected function gzipFile(string $source, string $destination): bool {
+    $in = @fopen($source, 'rb');
+    if ($in === false) {
+      $this->message = "Could not open $source for gzip";
+      return false;
+    }
+
+    $out = @gzopen($destination, 'wb9');
+    if ($out === false) {
+      fclose($in);
+      $this->message = "Could not open $destination for writing";
+      return false;
+    }
+
+    while (!feof($in)) {
+      $chunk = fread($in, 1024 * 1024);
+      if ($chunk === false) {
+        fclose($in);
+        gzclose($out);
+        $this->message = "Failed reading data from $source";
+        return false;
+      }
+      gzwrite($out, $chunk);
+    }
+
+    fclose($in);
+    gzclose($out);
+
+    return true;
+  }
+
+  /**
+   * Gunzip a file to a new path via PHP's zlib streams, the mirror of
+   * {@see gzipFile} — see its doc comment for why this bypasses `PharData`.
+   *
+   * @param string $source Path to the `.gz` file to decompress.
+   * @param string $destination Path to write the decompressed content to.
+   * @return bool True on success (sets `$this->message` on failure).
+   */
+  protected function gunzipFile(string $source, string $destination): bool {
+    $in = @gzopen($source, 'rb');
+    if ($in === false) {
+      $this->message = "Could not open $source for gunzip";
+      return false;
+    }
+
+    $out = @fopen($destination, 'wb');
+    if ($out === false) {
+      gzclose($in);
+      $this->message = "Could not open $destination for writing";
+      return false;
+    }
+
+    while (!gzeof($in)) {
+      $chunk = gzread($in, 1024 * 1024);
+      if ($chunk === false) {
+        gzclose($in);
+        fclose($out);
+        $this->message = "Failed reading gzip data from $source";
+        return false;
+      }
+      fwrite($out, $chunk);
+    }
+
+    gzclose($in);
+    fclose($out);
+
+    return true;
+  }
+
 }
