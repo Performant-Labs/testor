@@ -14,6 +14,32 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    # Real Postgres for PostgresSnapshotTest (issue #40, epic #39) — proves
+    # sqldump.command/sql.command work against Postgres with a real pg_dump/
+    # psql round-trip, not a mock. Version pinned to match Aftersight's own
+    # harness (server/src/test-support/pg-test-orm.ts: `postgres:18`), the
+    # first real consumer of this.
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      TESTOR_PG_HOST: 127.0.0.1
+      TESTOR_PG_PORT: 5432
+      TESTOR_PG_USER: postgres
+      PGPASSWORD: postgres
+
     steps:
     - uses: actions/checkout@v4
 
@@ -35,11 +61,20 @@ jobs:
         composer update
         composer install --prefer-dist --no-progress
 
+    # pg_dump/psql -- the actual binaries sqldump.command/sql.command shell
+    # out to in PostgresSnapshotTest. ubuntu-latest's runner image does not
+    # ship these by default.
+    - name: Install postgresql-client
+      run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
     # Docs: https://getcomposer.org/doc/articles/scripts.md
 
     - name: Run code style analyze
-      run: vendor/bin/phpstan analyze -vvv tests/ src/
+      # --memory-limit: the default 128M was sufficient before issue #40's
+      # new test files (PostgresSnapshotTest + helpers); analyzing the larger
+      # tree crashed the parallel worker at the default limit.
+      run: vendor/bin/phpstan analyze -vvv --memory-limit=512M tests/ src/
 
     - name: Run test suite
       run: composer run-script test
