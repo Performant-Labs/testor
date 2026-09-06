@@ -11,6 +11,7 @@ use Mockery\LegacyMockInterface;
 use Mockery\MockInterface;
 use PL\Robo\Common\StorageStrategy;
 use PL\Robo\Testor;
+use PL\Tests\Robo\Task\Testor\Helper\EmptyRobofile;
 use Robo\Collection\CollectionBuilder;
 use Robo\Robo;
 use Robo\Task\Base\Exec;
@@ -45,8 +46,13 @@ class TestorTestCase extends MockeryTestCase implements ContainerAwareInterface 
   }
 
   public function collectionBuilder(): CollectionBuilder {
-    // Scaffold the collection builder
-    $emptyRobofile = new \Robo\Tasks;
+    // Scaffold the collection builder. EmptyRobofile (not plain \Robo\Tasks)
+    // so a REAL, unmocked run of a task that nests Testor's own tasks
+    // (SnapshotCreate/Import -> taskArchivePack/taskArchiveUnpack) actually
+    // resolves them -- see EmptyRobofile's doc comment for why plain
+    // \Robo\Tasks silently worked for every EXISTING (fully-mocked) test but
+    // breaks the moment a test (PostgresSnapshotTest) needs a real run.
+    $emptyRobofile = new EmptyRobofile();
     // We have to have non-null builder in Robofile to avoid
     // exception during task assessing in Robo internals
     $emptyRobofile->setBuilder(new CollectionBuilder($emptyRobofile));

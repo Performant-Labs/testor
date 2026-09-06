@@ -1,0 +1,23 @@
+# Real Postgres fixture for issue #40 (epic #39).
+#
+# Proves `sqldump.command`/`sql.command` already work against Postgres with
+# ZERO code changes — SnapshotCreate/SnapshotImport just shell out to
+# whatever these strings say (see src/Robo/Task/Testor/SnapshotCreate.php,
+# SnapshotImport.php: `$this->testorConfig->getOrDie('sqldump.command')` /
+# `getOrDie('sql.command')`, no MySQL/Drupal default baked into the code).
+#
+# Connection details are env-substituted (see Testor::createConfiguration,
+# which merges getenv() for `${VAR}` substitution) rather than hardcoded, so
+# the SAME fixture file works against the postgres:18 service this repo's CI
+# spins up (.github/workflows/php.yml) and a local Docker Postgres a
+# developer runs on their own port. PGPASSWORD is read by pg_dump/psql
+# directly from the environment (a standard libpq convention) — never
+# embedded here.
+#
+# Source and target are two DIFFERENT databases on the SAME server, so one
+# test process can dump the seeded source and import into an empty target
+# without needing two Testor config objects or two containers.
+sqldump:
+  command: 'pg_dump -h ${TESTOR_PG_HOST} -p ${TESTOR_PG_PORT} -U ${TESTOR_PG_USER} testor_pg_source_test'
+sql:
+  command: 'psql -h ${TESTOR_PG_HOST} -p ${TESTOR_PG_PORT} -U ${TESTOR_PG_USER} testor_pg_target_test'
