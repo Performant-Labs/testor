@@ -63,9 +63,17 @@ jobs:
 
     # pg_dump/psql -- the actual binaries sqldump.command/sql.command shell
     # out to in PostgresSnapshotTest. ubuntu-latest's runner image does not
-    # ship these by default.
-    - name: Install postgresql-client
-      run: sudo apt-get update && sudo apt-get install -y postgresql-client
+    # ship these by default, and Ubuntu noble's own apt repo only carries
+    # postgresql-client 16 -- pg_dump refuses to dump a server NEWER than
+    # itself ("server version mismatch"), and the service below runs
+    # postgres:18. Use the official PGDG apt repo to install a matching
+    # v18 client instead of downgrading the server.
+    - name: Install postgresql-client 18
+      run: |
+        sudo apt-get install -y postgresql-common
+        sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+        sudo apt-get update
+        sudo apt-get install -y postgresql-client-18
 
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
     # Docs: https://getcomposer.org/doc/articles/scripts.md
