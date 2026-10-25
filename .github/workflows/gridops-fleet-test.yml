@@ -1,0 +1,15 @@
+name: GridOps fleet placement test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: [self-hosted, gridops, io-linux]
+    steps:
+      - name: who am I
+        run: |
+          hostname
+          whoami
+          uname -a
+          echo "done"
